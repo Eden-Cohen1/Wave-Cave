@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="styles/style.css" />
+    <script type="module" defer src="js/script.js"></script>
+  </head>
+  <body>
+    <div class="hero">
+      <nav>
+        <ul>
+          <li class="nav_item forecast"><a href="#section1">FORECAST</a></li>
+          <li class="nav_item community"><a href="#">COMMUNITY</a></li>
+        </ul>
+      </nav>
+      <div class="overlay">
+        <div class="main-headers">
+            <h1><span>wave-cave</span></h1>
+            <h2 id="firsth2">Check Waves Condition</h2>
+            <h2 id="secondh2">Share Your Journey</h2>
+            <div class="btn-container">
+              <button>ENTER THE CAVE</button>
+            </div>
+        </div>
+    </div>
+      </div>
+    </div>
+    <div class="section1 body-overlay" id="section1">
+      <div class="container wave-tables">
+        <h1>Forecast</h1>
+        <div class="table-group-1">
+          <div class="img-group">
+            <img
+              src="images/surfer1.jpg"
+              alt="surfer"
+              id="surfer1"
+              class="bg-img img-hidden"
+            />
+          </div>
+          <div class="wave-table table--hidden">
+            <h2>16/9</h2>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">Time</th>
+                  <th scope="col">Height</th>
+                  <th scope="col">Wind</th>
+                  <th scope="col">Swell</th>
+                  <th scope="col">Rating</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="am6 data">
+                  <th class="hour">6AM</th>
+                  <th class="height row-data">11</th>
+                  <th class="wind row-data">12</th>
+                  <th class="swell row-data">13</th>
+                  <th class="rating row-data">
+                      <div class="stars">
+                        <img class="star-1" src="/images/star-16.png" alt="">
+                        <img class="star-2"src="/images/star-16.png" alt="">
+                        <img class="star-3"src="/images/star-16.png" alt="">
+                        <img class="star-4"src="/images/star-16.png" alt="">
+                        <img class="star-5"src="/images/star-16.png" alt="">
+                      </div>
+                  </th>
+                </tr>
+                <tr class="am9 data">
+                  <th class="hour">9AM</th>
+                  <th class="height row-data">11</th>
+                  <th class="wind row-data">11</th>
+                  <th class="swell row-data">11</th>
+                  <th class="rating row-data">                      
+                    <div class="stars">
+                      <img class="star-1" src="/images/star-16.png" alt="">
+                      <img class="star-2"src="/images/star-16.png" alt="">
+                      <img class="star-3"src="/images/star-16.png" alt="">
+                      <img class="star-4"src="/images/star-16.png" alt="">
+                      <img class="star-5"src="/images/star-16.png" alt="">
+                    </div>
+                  </th>
+                </tr>
+                <tr class="am12 data">
+                  <th class="hour">12AM</th>
+                  <th class="height row-data">11</th>
+                  <th class="wind row-data">11</th>
+                  <th class="swell row-data">11</th>
+                  <th class="rating row-data">                      
+                    <div class="stars">
+                      <img class="star-1" src="/images/star-16.png" alt="">
+                      <img class="star-2"src="/images/star-16.png" alt="">
+                      <img class="star-3"src="/images/star-16.png" alt="">
+                      <img class="star-4"src="/images/star-16.png" alt="">
+                      <img class="star-5"src="/images/star-16.png" alt="">
+                    </div>
+                  </th>
+                </tr>
+                <tr class="pm3 data">
+                  <th class="hour">3PM</th>
+                  <th class="height row-data">11</th>
+                  <th class="wind row-data">11</th>
+                  <th class="swell row-data">11</th>
+                  <th class="rating row-data">                      
+                    <div class="stars">
+                      <img class="star-1" src="/images/star-16.png" alt="">
+                      <img class="star-2"src="/images/star-16.png" alt="">
+                      <img class="star-3"src="/images/star-16.png" alt="">
+                      <img class="star-4"src="/images/star-16.png" alt="">
+                      <img class="star-5"src="/images/star-16.png" alt="">
+                  </div></th>
+                </tr>
+                <tr class="pm6 data">
+                  <th class="hour">6PM</th>
+                  <th class="height row-data">11</th>
+                  <th class="wind row-data">11</th>
+                  <th class="swell row-data">11</th>
+                  <th class="rating row-data">  
+                   <div class="stars">
+                    <img class="star-1" src="/images/star-16.png" alt="">
+                    <img class="star-2"src="/images/star-16.png" alt="">
+                    <img class="star-3"src="/images/star-16.png" alt="">
+                    <img class="star-4"src="/images/star-16.png" alt="">
+                    <img class="star-5"src="/images/star-16.png" alt="">
+                  </div></th>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container-footer">
+        <footer class="py-5">
+          <div class="row">
+            <div class="col-12 col-md-2 mb-3">
+              <h5>Section</h5>
+              <ul class="nav flex-column footer-menu">
+                <li class="nav-item mb-2"><a href="#" class="nav-link p-0">Home</a></li>
+                <li class="nav-item mb-2"><a href="#" class="nav-link p-0">Community</a></li>
+                <li class="nav-item mb-2"><a href="#" class="nav-link p-0">Forecast</a></li>
+                <li class="nav-item mb-2"><a href="#" class="nav-link p-0">About</a></li>
+              </ul>
+            </div>
+            <div class="col-md-5 offset-md-1 mb-3">
+              <form>
+                <h5>Get weekly updates straight to your email!</h5>
+                <div class="d-flex flex-column flex-sm-row w-100 gap-3 col-sm-12">
+                  <label for="newsletter1" class="visually-hidden">Email address</label>
+                  <input id="newsletter1" type="text" class="form-control col-md-12" placeholder="Email address">
+                  <button class="btn btn-primary" type="button">Subscribe</button>
+                </div>
+              </form>
+            </div>
+          </div>
+      
+          <div class="d-flex flex-column flex-sm-row justify-content-between py-4 my-4 border-top">
+            <p>© 2023 Eden Cohen</p>
+          </div>
+        </footer>
+      </div>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+      crossorigin="anonymous"
+    ></script>
+
+  </body>
+</html>
