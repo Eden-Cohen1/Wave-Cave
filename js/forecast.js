@@ -17,13 +17,13 @@ export class HourForecast {
     this.wind = wind < 1 ? "1 kph" : `${wind} kph`;
     this.swell = `${Math.round(swell)}s`;
     this.rating =
-      ((height - 0.1) / (MAX_WAVES - 0.1)) *
+      ((height - 0.1) / (MAX_WAVES - 0.5)) *
       ((MAX_WIND - Number(wind)) / (MAX_WIND - 1)) *
       5;
     this.rating = this.rating.toFixed(1);
   }
 }
-const wavesData = [
+const defaultData = [
   {
     airTemperature: {
       dwd: 23.44,
@@ -8238,8 +8238,9 @@ const wavesData = [
     },
   },
 ];
+let israelData, sriData, indoData, MaldivesData;
 
-export function generateForecast() {
+export function generateForecast(data = defaultData) {
   let dayForecast;
   const daysOfWeek = [
     "Sunday",
@@ -8261,9 +8262,9 @@ export function generateForecast() {
     }`;
     for (let j = 0; j < 15; j += 3) {
       const hour = new HourForecast(
-        wavesData[j + i * 24].waveHeight.sg,
-        Math.round(wavesData[j + i * 24].windSpeed20m.noaa * 3.6),
-        wavesData[j + i * 24].swellPeriod.sg + 1,
+        data[j + i * 24].waveHeight.sg,
+        Math.round(data[j + i * 24].windSpeed20m.noaa * 3.6),
+        data[j + i * 24].swellPeriod.sg + 1,
         `${(j + 6) % 12}${j > 6 ? "PM" : "AM"}`
       );
       hours.push(hour);

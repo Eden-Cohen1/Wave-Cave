@@ -64,7 +64,7 @@ function init() {
       tableDiv.classList.add("table-group");
       // Create an image for the table group
       const groupImg = document.createElement("img");
-      groupImg.src = `images/surfer${divCounter}.jpg`;
+      groupImg.src = `../images/surfer${divCounter}.jpg`;
       groupImg.id = `surfer${divCounter}`;
       groupImg.classList.add("bg-img", "img-hidden");
       imgDiv.appendChild(groupImg);
@@ -117,19 +117,19 @@ function fillStarRating(col, rating) {
   const isHalfStar = rating - full_stars >= 0.5;
   for (let i = 1; i < full_stars + 1; i++) {
     const star = starList.querySelector(`.star-${i}`);
-    star.src = "images/star-16.png";
+    star.src = "../images/star-16.png";
   }
   if (isHalfStar) {
     const star = starList.querySelector(`.star-${full_stars + 1}`);
-    star.src = "images/star-half-empty-16.png";
+    star.src = "../images/star-half-empty-16.png";
     for (let i = full_stars + 2; i <= 5; i++) {
       const star = starList.querySelector(`.star-${i}`);
-      star.src = "images/empty-star-16.png";
+      star.src = "../images/empty-star-16.png";
     }
   } else {
     for (let i = full_stars + 1; i <= 5; i++) {
       const star = starList.querySelector(`.star-${i}`);
-      star.src = "images/empty-star-16.png";
+      star.src = "../images/empty-star-16.png";
     }
   }
 }
