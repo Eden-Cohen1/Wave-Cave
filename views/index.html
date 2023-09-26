@@ -11,10 +11,9 @@
       crossorigin="anonymous"
     />
     <link rel="stylesheet" href="/styles/style.css" />
-    <script  defer src="js/forecast.cjs"></script>
-    <script  defer src="js/news.cjs"></script>
-    <script  defer src="../server.js"></script>
-    <script  defer src="js/script.cjs"></script>
+    <script type="module" defer src="js/forecast.js"></script>
+    <script type="module" defer src="js/news.js"></script>
+    <script type="module" defer src="js/script.js"></script>
     <!-- <script defer src="js/script.js"></script>
     <script defer src="js/news.js"></script> -->
   </head>
@@ -43,15 +42,16 @@
       <div class="location-container">
         <h1>Locations</h1>
         <ul class="location-buttons">
-          <li><button>Israel</button></li>
-          <li><button>Sri-lanka</button></li>
-          <li><button>Indonessia</button></li>
-          <li><button>Maldives</button></li>
+          <li><button id="israel" class="loc-btn">Israel</button></li>
+          <li><button id="srilanka" class="loc-btn">Sri-lanka</button></li>
+          <li><button id="indonessia" class="loc-btn">Indonessia</button></li>
+          <li><button id="maldives" class="loc-btn">Maldives</button></li>
         </ul>
       </div>
     </div>
     <div class="container wave-tables">
         <h1>Forecast</h1>
+        <h3 id="spot-header">📍 Hilton, TelAviv - Israel</h3>
         <div class="table-group-1">
           <div class="img-group">
             <img

@@ -1,8 +1,8 @@
 "use strict";
 const apikey = "8f3d871e412accdfc7429cedc1db13ba";
 const url = `https://gnews.io/api/v4/search?q=surfing waves&lang=en&country=us&max=5&apikey=${apikey}`;
-let lastAPIcall;
-function fetchArticles() {
+export let lastAPIcall;
+export function fetchArticles() {
   return fetch(url)
     .then(function (response) {
       return response.json();
@@ -23,7 +23,7 @@ class Article {
     this.image = image;
   }
 }
-function wrapArticles(articles) {
+export function wrapArticles(articles) {
   const allArticles = [];
   for (let article of articles) {
     const { title, description, content, url, image } = article;
@@ -33,4 +33,4 @@ function wrapArticles(articles) {
   return allArticles;
 }
 
-module.exports = { fetchArticles, wrapArticles, lastAPIcall };
+// module.exports = { fetchArticles, wrapArticles, lastAPIcall };

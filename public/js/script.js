@@ -1,9 +1,4 @@
 "use strict";
-//imports
-// const fetchAndProccessForecast = require("../server.js");
-console.log(fetchAndProccessForecast);
-// ELEMENTS
-// import { generateForecast } from "./forecast.js";
 const body = document.querySelector("body");
 const table = document.querySelector(".wave-table");
 const tablesContainer = document.querySelector(".wave-tables");
@@ -17,6 +12,8 @@ const btnEnter = document.querySelector(".btn-container button");
 const mainHeaders = document.querySelector(".main-headers");
 const overlay = document.querySelector(".overlay");
 const tableElements = document.querySelectorAll("table");
+const btnsLocationContainer = document.querySelector(".location-buttons");
+const spotHeader = document.querySelector("#spot-header");
 let tableGroup = document.querySelector(".table-group-1");
 let tableDiv = document.createElement("div");
 tableDiv.classList.add("table-group");
@@ -85,8 +82,44 @@ function init() {
 //-----------------------------------------------------------------------
 
 //UPDATING TABLE WITH DATA [DATA=DATA[HOURS]]
+
 const allTables = document.querySelectorAll(".wave-table");
-const forecast = formatForcast();
+async function fetchForecastData() {
+  return fetch("./db/wavesData.txt")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Cannot read data! Status:${response.status}`);
+      }
+      return response.text();
+    })
+    .then((data) => {
+      return JSON.parse(data);
+    });
+}
+const forecasts = await fetchForecastData();
+let forecastLoc;
+btnsLocationContainer.addEventListener("click", function (e) {
+  e.preventDefault();
+  if (e.target.classList.contains("loc-btn")) {
+    const LocationID = e.target.getAttribute("id");
+    switch (LocationID) {
+      case "indonessia":
+        spotHeader.textContent = "📍 Uluwatu - Bali, Indonessia";
+        break;
+      case "srilanka":
+        spotHeader.textContent = "📍 Cocunat Point - Weligama, Sri Lanka";
+        break;
+      case "maldives":
+        spotHeader.textContent =
+          "📍 The Jailbreaks Surf Point, Himmafushi, Maldives";
+        break;
+      default:
+        spotHeader.textContent = "📍 Hilton, TelAviv - Israel";
+    }
+
+    fillTables(LocationID);
+  }
+});
 function updateTable(day, table) {
   // change date header
   const { date } = day;
@@ -108,11 +141,12 @@ function updateTable(day, table) {
   }
 }
 // loop over all the tables and forecasts to fill
-allTables.forEach((table, index) => {
-  console.log(table);
-  console.log(forecast[index]);
-  updateTable(forecast[index], table);
-});
+function fillTables(location) {
+  allTables.forEach((table, index) => {
+    updateTable(forecasts[location][index], table);
+  });
+}
+fillTables("israel");
 
 function fillStarRating(col, rating) {
   const starList = col.querySelector(".stars");

@@ -115,6 +115,10 @@ nav {
   font-size: 1.5rem;
   margin-top: 5%;
 }
+.section1 h3 {
+  font-weight: 300;
+  font-size: 1.2rem;
+}
 
 .wave-table {
   margin-bottom: 12rem;

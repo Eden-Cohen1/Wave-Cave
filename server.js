@@ -1,14 +1,16 @@
 // SERVER
-const express = require("express");
+import express, { urlencoded, json } from "express";
+import { join } from "path";
+import cors from "cors";
+import { logger, logEvents } from "./logEvents.js";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import { writeFile, readFileSync } from "fs";
+import { promises as fsPromises } from "fs";
 const app = express();
-const path = require("path");
-const cors = require("cors");
-const { logger, logEvents } = require("./logEvents");
 const PORT = process.env.PORT || 3500;
-
-const fs = require("fs");
-const fsPromises = require("fs").promises;
-
+const currentFileUrl = import.meta.url;
+const currentDir = dirname(fileURLToPath(currentFileUrl));
 // Middleware
 //custom middlewate logger
 app.use(logger);
@@ -32,18 +34,19 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 //loading all images, scripts and css
-app.use(express.static(path.join(__dirname, "/public")));
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+console.log(currentDir);
+app.use(express.static(join(currentDir, "/public")));
+app.use(urlencoded({ extended: false }));
+app.use(json());
 
 //Pages, Redirect, 404.
 // home
 app.get("^/$|/index(.html)?", (req, res) => {
-  res.sendFile(path.join(__dirname, "views", "index.html"));
+  res.sendFile(join(currentDir, "views", "index.html"));
 });
 // community
 app.get("/community(.html)?", (req, res) => {
-  res.sendFile(path.join(__dirname, "views", "community.html"));
+  res.sendFile(join(currentDir, "views", "community.html"));
 });
 // redirect
 app.get("/old-page(.html)?", (req, res) => {
@@ -51,7 +54,7 @@ app.get("/old-page(.html)?", (req, res) => {
 });
 // 404
 app.all("*", (req, res) => {
-  res.status(404).sendFile(path.join(__dirname, "views", "404.html"));
+  res.status(404).sendFile(join(currentDir, "views", "404.html"));
 });
 
 //Error Handler
@@ -63,19 +66,15 @@ app.use(function (err, req, res, next) {
 
 //Port
 app.listen(PORT, () => {
-  console.log(`Server ruuning on port ${PORT}`);
+  console.log(`Server ruuning on ${PORT}`);
 });
 
 // Route handlers
 // ---------------------------------------------------------------
 
 //Article Data
-const {
-  fetchArticles,
-  wrapArticles,
-  lastAPIcall,
-} = require("./public/js/news.js");
-const { log } = require("console");
+import { fetchArticles, wrapArticles, lastAPIcall } from "./public/js/news.js";
+import { log } from "console";
 
 async function fetchAndProccessArticles() {
   let allArticles;
@@ -94,19 +93,19 @@ async function main() {
   console.log(allArticles);
 }
 // ---------------------------------------------------------------
-
 //Forecast Data
-const {
-  generateForecast,
-  lastForecastApiCall,
-} = require("./public/js/forecast.js");
-exports.fetchAndProccessForecast = async function fetchAndProccessForecast() {
+import { generateForecast } from "./public/js/forecast.js";
+async function UpdateForecastDB() {
   let allForecast;
   const today = new Date().toISOString();
-  if (lastForecastApiCall?.split("T")[0] !== today.split("T")[0]) {
+  const lastApiCall = readFileSync(
+    join(currentDir, "public", "db", "lastApiCall.txt"),
+    "utf8"
+  );
+  if (lastApiCall?.split("T")[0] !== today.split("T")[0]) {
     allForecast = await generateForecast();
-    fs.writeFile(
-      path.join(__dirname, "db", "wavesData.txt"),
+    writeFile(
+      join(currentDir, "public", "db", "wavesData.txt"),
       JSON.stringify(allForecast),
       (err) => {
         if (err) {
@@ -114,17 +113,11 @@ exports.fetchAndProccessForecast = async function fetchAndProccessForecast() {
         }
       }
     );
-  } else {
-    const jsonString = fs.readFileSync(
-      path.join(__dirname, "db", "wavesData.txt"),
-      "utf8"
-    );
-    allForecast = JSON.parse(jsonString);
   }
-  return allArticles;
-};
-async function main2() {
-  const allArticles = await fetchAndProccessArticles();
-  //update ui with correct data
-  console.log(allArticles);
 }
+UpdateForecastDB();
+// async function main2() {
+//   const allArticles = await fetchAndProccessArticles();
+//   //update ui with correct data
+//   console.log(allArticles);
+// }
