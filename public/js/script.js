@@ -19,8 +19,8 @@ let tableDiv = document.createElement("div");
 tableDiv.classList.add("table-group");
 tableDiv.appendChild(table);
 tableGroup.appendChild(tableDiv);
-btnForecast.style.opacity = 0;
-btnCommunity.style.opacity = 0;
+// btnForecast.style.opacity = 0;
+// btnCommunity.style.opacity = 0;
 
 //-----------------------------------------------------------------------
 
@@ -32,7 +32,6 @@ if (history.scrollRestoration) {
 
 function allowScroll() {
   body.style["overflow-y"] = "auto";
-  const section1 = document.querySelector(".secgalf1");
   // section1.scrollIntoView({ behavior: "smooth" });
   btnEnter.style.opacity = 0;
   btnForecast.style.opacity = 1;

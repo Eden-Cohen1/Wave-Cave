@@ -1,0 +1,22 @@
+:root {
+  --main-color: #a7ecee;
+  --main-color-opacity: hsla(182, 68%, 79%, 0.404);
+  --bg-color: #1f2020;
+}
+* {
+  font-family: "IBM Plex Mono", monospace !important;
+  font-family: "Libre Baskerville", serif;
+  font-family: "Roboto Mono", monospace;
+}
+
+h1 {
+  color: aliceblue;
+}
+body {
+  margin-top: 0px;
+  margin-left: 0px;
+  margin-right: 0px;
+  overflow-x: hidden;
+  /* overflow-y: hidden; */
+  background-color: var(--bg-color);
+}
