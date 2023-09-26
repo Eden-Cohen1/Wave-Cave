@@ -1,17 +1,81 @@
-const http = require("http");
+// SERVER
+const express = require("express");
+const app = express();
 const path = require("path");
+const cors = require("cors");
+const { logger, logEvents } = require("./logEvents");
+const PORT = process.env.PORT || 3500;
+
 const fs = require("fs");
-const fsPromise = require("fs").promises;
+const fsPromises = require("fs").promises;
 
-const logEvents = require("./js/logEvents");
-const EventsEmitter = require("events");
-const { error } = require("console");
-class Emitter extends EventsEmitter {}
-//initialize Emitter Object
-const myEmitter = new Emitter();
-myEmitter.on("log", (msg, fileName) => logEvents(msg, fileName));
+// Middleware
+//custom middlewate logger
+app.use(logger);
+//Cross Origin Resource Sharing
+const whitelist = [
+  "https://www.wavecave.com",
+  "http://127.0.0.1:5500",
+  "http://localhost:3500",
+]; // those are allowed to access the backend application (add React server for example) remove local after development
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (whitelist.indexOf(origin) !== -1 || !origin) {
+      //remove !origin after development
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  optionsSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
 
-const { fetchArticles, wrapArticles, lastAPIcall } = require("./js/news");
+//loading all images, scripts and css
+app.use(express.static(path.join(__dirname, "/public")));
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+
+//Pages, Redirect, 404.
+// home
+app.get("^/$|/index(.html)?", (req, res) => {
+  res.sendFile(path.join(__dirname, "views", "index.html"));
+});
+// community
+app.get("/community(.html)?", (req, res) => {
+  res.sendFile(path.join(__dirname, "views", "community.html"));
+});
+// redirect
+app.get("/old-page(.html)?", (req, res) => {
+  res.redirect(301, +"/"); // 302
+});
+// 404
+app.all("*", (req, res) => {
+  res.status(404).sendFile(path.join(__dirname, "views", "404.html"));
+});
+
+//Error Handler
+app.use(function (err, req, res, next) {
+  logEvents(`${err.name}: ${err.message}`, "errLog.txt");
+  console.error(err.stack);
+  res.status(500).send(err.message);
+});
+
+//Port
+app.listen(PORT, () => {
+  console.log(`Server ruuning on port ${PORT}`);
+});
+
+// Route handlers
+// ---------------------------------------------------------------
+
+//Article Data
+const {
+  fetchArticles,
+  wrapArticles,
+  lastAPIcall,
+} = require("./public/js/news.js");
+const { log } = require("console");
 
 async function fetchAndProccessArticles() {
   let allArticles;
@@ -29,92 +93,38 @@ async function main() {
   //update ui with correct data
   console.log(allArticles);
 }
-//main();
+// ---------------------------------------------------------------
 
-const PORT = process.env.PORT || 3500;
-
-async function serveFile(filePath, contentType, response) {
-  try {
-    const rawData = await fsPromise.readFile(
-      filePath,
-      contentType.includes("image") ? "" : "utf8"
+//Forecast Data
+const {
+  generateForecast,
+  lastForecastApiCall,
+} = require("./public/js/forecast.js");
+exports.fetchAndProccessForecast = async function fetchAndProccessForecast() {
+  let allForecast;
+  const today = new Date().toISOString();
+  if (lastForecastApiCall?.split("T")[0] !== today.split("T")[0]) {
+    allForecast = await generateForecast();
+    fs.writeFile(
+      path.join(__dirname, "db", "wavesData.txt"),
+      JSON.stringify(allForecast),
+      (err) => {
+        if (err) {
+          console.error(err);
+        }
+      }
     );
-    const data =
-      contentType === "application/json" ? JSON.parse(rawData) : rawData;
-    response.writeHead(filePath.includes("404.html") ? 404 : 200, {
-      "Content-Type": contentType,
-    });
-    response.end(
-      contentType === "application/json" ? JSON.stringify(data) : data
-    );
-  } catch (err) {
-    console.log(err);
-    myEmitter.emit("log", `${err.name}: ${err.message}`, "errLog.txt");
-    response.statusCode = 500;
-    response.end();
-  }
-}
-const server = http.createServer((req, res) => {
-  myEmitter.emit("log", `${req.url}\t${req.method}`, "reqLog.txt");
-  const extention = path.extname(req.url);
-  let contentType;
-  switch (extention) {
-    case ".css":
-      contentType = "text/css";
-      break;
-    case ".js":
-      contentType = "text/javascript";
-      break;
-    case ".json":
-      contentType = "application/json";
-      break;
-    case ".jpg":
-      contentType = "image/jpeg";
-      break;
-    case ".png":
-      contentType = "image/png";
-      break;
-    case ".txt":
-      contentType = "text/plain";
-      break;
-    default:
-      contentType = "text/html";
-  }
-  let filePath =
-    contentType === "text/html" && req.url === "/"
-      ? path.join(__dirname, "views", "index.html")
-      : contentType === "text/html" && req.url.slice(-1) === "/"
-      ? path.join(__dirname, "views", req.url, "index.html")
-      : contentType === "text/html"
-      ? path.join(__dirname, "views", req.url)
-      : path.join(__dirname, req.url);
-
-  if (!extention && req.url.slice(-1) !== "/") {
-    filePath += ".html";
-  }
-  const fileExist = fs.existsSync(filePath);
-
-  if (fileExist) {
-    console.log("Exists");
-    serveFile(filePath, contentType, res);
   } else {
-    switch (path.parse(filePath).base) {
-      //redirecting to home page
-      case "old-page.html":
-        res.writeHead(301, { Location: "/" });
-        res.end();
-        break;
-      case "www-page.html":
-        res.writeHead(301, { Location: "/" });
-        res.end();
-        break;
-      // serve 404
-      default:
-        serveFile(path.join(__dirname, "views", "404.html"), "text/html", res);
-    }
+    const jsonString = fs.readFileSync(
+      path.join(__dirname, "db", "wavesData.txt"),
+      "utf8"
+    );
+    allForecast = JSON.parse(jsonString);
   }
-});
-
-server.listen(PORT, () => {
-  console.log(`Server ruuning on port ${PORT}`);
-});
+  return allArticles;
+};
+async function main2() {
+  const allArticles = await fetchAndProccessArticles();
+  //update ui with correct data
+  console.log(allArticles);
+}

@@ -1,4 +1,4 @@
-export class DayForecast {
+class DayForecast {
   constructor(date, am6, am9, am12, pm3, pm6) {
     this.am6 = am6;
     this.am12 = am12;
@@ -10,7 +10,7 @@ export class DayForecast {
 }
 const MAX_WIND = 30;
 const MAX_WAVES = 2;
-export class HourForecast {
+class HourForecast {
   constructor(height, wind, swell, hour) {
     this.hour = hour;
     this.height = `${height}m`;
@@ -8238,9 +8238,9 @@ const defaultData = [
     },
   },
 ];
-let israelData, sriData, indoData, MaldivesData;
+let israelData, sriData, indoData, maldivesData;
 
-export function generateForecast(data = defaultData) {
+function formatForcast(data = defaultData) {
   let dayForecast;
   const daysOfWeek = [
     "Sunday",
@@ -8273,4 +8273,66 @@ export function generateForecast(data = defaultData) {
     weekForcast.push(dayForecast);
   }
   return weekForcast;
+}
+
+exports.generateForecast = async function () {
+  const api_key =
+    "ccb6ca00-39ec-11ee-8b7f-0242ac130002-ccb6ca64-39ec-11ee-8b7f-0242ac130002";
+  //setting time
+  const start = new Date();
+  exports.lastForecastApiCall = start;
+  start.setUTCHours(3, 0, 0, 0);
+  const timestampStart = start.getTime() / 1000;
+  const end = new Date(start);
+  end.setUTCDate(end.getUTCDate() + 7);
+  end.setUTCHours(3, 0, 0, 0);
+  const timestampEnd = end.getTime() / 1000;
+  //lat & lng
+  const israelLat = 32.017444;
+  const israelLng = 34.735509;
+  const sriLat = 5.97117;
+  const sriLng = 80.427206;
+  const indolLat = -8.654951;
+  const indoLng = 115.12488;
+  const maldiveLat = 4.307837;
+  const maldiveLng = 73.577551;
+  const params =
+    "waveHeight,airTemperature,swellPeriod,windSpeed,windSpeed20m,windDirection,windSpeed50m,windSpeed100m,windSpeed1000hpa,windSpeed200hpa";
+
+  //Hilton - Israel, TelAviv
+  israelData = fetchData(israelLat, israelLng);
+  //Cocunat Point - Weligama, Sri Lanka
+  sriData = fetchData(sriLat, sriLng);
+  //Uluwatu - Bali, Indonessia
+  indoData = fetchData(indolLat, indoLng);
+  //The Jailbreaks Surf Point, Himmafushi, Maldives
+  maldivesData = fetchData(maldiveLat, maldiveLng);
+  return {
+    israel: formatForcast(israelData),
+    srilanka: formatForcast(sriData),
+    indonessia: formatForcast(indoData),
+    maldives: formatForcast(maldivesData),
+  };
+};
+
+function fetchData(
+  lat,
+  lng,
+  params = params,
+  start = timestampStart,
+  end = timestampEnd
+) {
+  fetch(
+    `https://api.stormglass.io/v2/weather/point?lat=${lat}&lng=${lng}&params=${params}&start=${start}&end=${end}`,
+    {
+      headers: {
+        Authorization: api_key,
+      },
+    }
+  )
+    .then((response) => response.json())
+    .then((jsonData) => {
+      return jsonData["hours"];
+      // Do something with response data.
+    });
 }
