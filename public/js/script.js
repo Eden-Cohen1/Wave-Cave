@@ -14,6 +14,8 @@ const overlay = document.querySelector(".overlay");
 const tableElements = document.querySelectorAll("table");
 const btnsLocationContainer = document.querySelector(".location-buttons");
 const spotHeader = document.querySelector("#spot-header");
+const guideP = document.querySelector("#loc-guide-p");
+const guideH = document.querySelector("#loc-guide-h");
 let tableGroup = document.querySelector(".table-group-1");
 let tableDiv = document.createElement("div");
 tableDiv.classList.add("table-group");
@@ -30,15 +32,15 @@ if (history.scrollRestoration) {
 }
 //ENTER THE CAVE
 
-function allowScroll() {
-  body.style["overflow-y"] = "auto";
-  // section1.scrollIntoView({ behavior: "smooth" });
-  btnEnter.style.opacity = 0;
-  btnForecast.style.opacity = 1;
-  btnCommunity.style.opacity = 1;
-  overlay.style.background = `linear-gradient(rgba(31, 32, 32, 0.184), var(--bg-color))`;
-}
-btnEnter.addEventListener("click", allowScroll);
+// function allowScroll() {
+//   body.style["overflow-y"] = "auto";
+//   // section1.scrollIntoView({ behavior: "smooth" });
+//   btnEnter.style.opacity = 0;
+//   btnForecast.style.opacity = 1;
+//   btnCommunity.style.opacity = 1;
+//   overlay.style.background = `linear-gradient(rgba(31, 32, 32, 0.184), var(--bg-color))`;
+// }
+// btnEnter.addEventListener("click", allowScroll);
 //-----------------------------------------------------------------------
 
 // INITIATE TABLES
@@ -104,16 +106,29 @@ btnsLocationContainer.addEventListener("click", function (e) {
     switch (LocationID) {
       case "indonessia":
         spotHeader.textContent = "📍 Uluwatu - Bali, Indonessia";
+        guideP.textContent =
+          "Uluwatu is at the forefront of surfing in Bali, thanks to its ability to cope with all sizes of swells on its vast scattered jetty-like reef playground. With kilometers of sandy beaches tucked into cliff-backed, secretive inlets, Ulu's is a wide reef offering 5 different peaks that turn on at different tides. These main 5 waves all break left down the reef with variations sections that change with the size of the swell also.";
+        guideH.textContent = "Uluwatu Point Break";
+
         break;
       case "srilanka":
-        spotHeader.textContent = "📍 Cocunat Point - Weligama, Sri Lanka";
+        spotHeader.textContent = "📍 Coconut Point - Weligama, Sri Lanka";
+        guideP.textContent =
+          "Coconut point is a classic A frame point break, powerful peeling left and rights for a 400 m ride. Reef entry point or paddle from the sand on the right. Works best at high tide so generally sunrise and sun set. Usually a friendly local around to give you tips on on the best entry and exit points.";
+        guideH.textContent = "Coconut Point Break";
         break;
       case "maldives":
         spotHeader.textContent =
           "📍 The Jailbreaks Surf Point, Himmafushi, Maldives";
+        guideP.textContent =
+          "Jailbreaks in North Male Atoll is an exposed reef break that has reasonably consistent surf. The surf tends to be best in the spring. Offshore winds blow from the south southwest. Groundswells more frequent than windswells and the best swell direction is from the south. There is a right hand reef break. Good surf at all stages of the tide.";
+        guideH.textContent = "The Jailbreaks Point Break";
         break;
       default:
         spotHeader.textContent = "📍 Hilton, TelAviv - Israel";
+        guideP.textContent =
+          "Hilton on the West Coast is an exposed reef/jetties break that has inconsistent surf. Winter is the optimum time of year for surfing here. Works best in offshore winds from the east. Usually gets local windswells, but groundswells do happen and the ideal wave angle is from the southwest. The reef provides both left and right breaks. It's often crowded here. Take care to avoid the rocks.";
+        guideH.textContent = "Hilton Reaf Break";
     }
 
     fillTables(LocationID);
@@ -181,18 +196,18 @@ btnForecast.addEventListener("click", function (e) {
 
 //hover effect
 
-function handleHover(e) {
-  e.target.style.color = this;
-}
-nav.addEventListener("mouseover", handleHover.bind("#a7ecee"));
-nav.addEventListener("mouseout", handleHover.bind("#f0f8ff"));
-console.log(btnsFooter);
-btnsFooter.forEach((link) =>
-  link.addEventListener("mouseover", handleHover.bind("#a7ecee"))
-);
-btnsFooter.forEach((link) =>
-  link.addEventListener("mouseout", handleHover.bind("#f0f8ff"))
-);
+// function handleHover(e) {
+//   e.target.style.color = this;
+// }
+// nav.addEventListener("mouseover", handleHover.bind("#a7ecee"));
+// nav.addEventListener("mouseout", handleHover.bind("#f0f8ff"));
+// console.log(btnsFooter);
+// btnsFooter.forEach((link) =>
+//   link.addEventListener("mouseover", handleHover.bind("#a7ecee"))
+// );
+// btnsFooter.forEach((link) =>
+//   link.addEventListener("mouseout", handleHover.bind("#f0f8ff"))
+// );
 
 //-----------------------------------------------------------------------
 

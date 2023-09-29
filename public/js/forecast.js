@@ -83,7 +83,7 @@ export const generateForecast = async function () {
   const indoLng = 115.12488;
   const maldiveLat = 4.307837;
   const maldiveLng = 73.577551;
-  await fs.writeFile("./db/lastApiCall.txt", lastForecastApiCall);
+  await fs.writeFile("./public/db/lastApiCall.txt", lastForecastApiCall);
   //Hilton, TelAviv - Israel
   israelData = await fetchData(
     israelLat,

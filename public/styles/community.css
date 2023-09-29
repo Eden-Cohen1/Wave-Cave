@@ -1,22 +1,413 @@
 :root {
   --main-color: #a7ecee;
+  --secondary-color: #6ab7d1;
+  --secondary-color2: #68a2b6;
   --main-color-opacity: hsla(182, 68%, 79%, 0.404);
-  --bg-color: #1f2020;
+  /* --bg-color: #1f2020; */
+  --bg-color: #121313;
+  --dark-bg-color: #1f2020;
+  /* --dark-bg-color: #121313; */
+  --grey-color: #c7cecef3;
+  --border-radius: 2rem;
+  --card-border-radius: 1rem;
+  --btn-padding: 0.6rem 2rem;
+  --search-padding: 0.6rem 1rem;
+  --card-padding: 1rem;
+  --sticky-top-left: 5.4rem;
+  --sticky-top-right: -18rem;
 }
-* {
-  font-family: "IBM Plex Mono", monospace !important;
-  font-family: "Libre Baskerville", serif;
-  font-family: "Roboto Mono", monospace;
+*,
+*::before,
+*::after {
+  font-family: "Poppins", sans-serif;
+  margin: 0;
+  padding: 0;
+  outline: 0;
+  box-sizing: border-box;
+  text-decoration: none;
+  list-style: none;
 }
-
+img {
+  display: block;
+  width: 100%;
+}
 h1 {
   color: aliceblue;
 }
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
 body {
-  margin-top: 0px;
-  margin-left: 0px;
-  margin-right: 0px;
+  padding: 20%;
   overflow-x: hidden;
-  /* overflow-y: hidden; */
+  z-index: 99;
   background-color: var(--bg-color);
+  background-image: url("../images/wavedraw.png");
+  background-size: 50%;
+  background-repeat: no-repeat;
+  background-position-x: -20rem;
+  background-position-y: 20rem;
+  overflow-y: hidden;
+}
+
+.text-muted {
+  color: #121313;
+}
+.overlay {
+  position: fixed;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(rgba(22, 22, 22, 0.849), var(--bg-color));
+  top: 0px;
+  left: 0px;
+  z-index: 1000;
+  overflow: scroll;
+  overflow-x: hidden;
+}
+.container {
+  width: 100%;
+}
+.contain {
+  width: 90%;
+}
+/* <!-- =========================== Nav-Bar =========================== --> */
+nav {
+  width: 100%;
+  background-color: var(--dark-bg-color);
+  padding: 0.7rem 0;
+  position: absolute;
+  top: 0;
+  z-index: 10;
+  border-bottom-style: solid;
+  border-width: 2px;
+  border-color: #68696956;
+}
+nav .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+nav .search-bar {
+  background: aliceblue;
+  border-radius: var(--border-radius);
+  padding: var(--search-padding);
+  display: flex;
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+nav .search-bar input[type="search"] {
+  color: var(--bg-color);
+  background: transparent;
+  width: 30vw;
+  margin-left: 1rem;
+  font-size: 0.9rem;
+  border-style: none;
+  cursor: text;
+  display: inline-block;
+}
+ul {
+  display: flex;
+  align-items: center;
+  margin-top: 2%;
+  margin-right: 0.5rem;
+}
+
+.nav-item {
+  margin-right: 15%;
+}
+nav li {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+.profile-photo {
+  width: 2.8rem;
+  aspect-ratio: 1/1;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.btn-primary {
+  border-radius: var(--border-radius);
+  padding: 5%;
+  width: 8rem;
+  height: 5vh;
+  font-size: 0.7rem;
+  border: none;
+  background-color: var(--secondary-color2);
+  color: white;
+  /* color: var(--bg-color); */
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-align: center;
+}
+
+@keyframes color-change {
+  0% {
+    background-color: var(--bg-color);
+    color: aliceblue;
+  }
+  100% {
+    background-color: var(--main-color);
+    color: var(--bg-color);
+  }
+}
+
+button:hover {
+  animation: color-change 1s;
+  background-color: var(--main-color);
+  color: var(--bg-color);
+}
+
+input {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+/* <!-- =========================== Middle =========================== --> */
+main {
+  position: relative;
+  top: 10rem;
+}
+main {
+  display: grid;
+  grid-template-columns: 18vw auto;
+  column-gap: 4rem;
+  position: relative;
+}
+.feed .profile-photo {
+  width: 4.5rem;
+}
+.logo-img {
+  margin-left: 3%;
+  width: 100px;
+  height: 50px;
+}
+.overlay h1 {
+  margin-bottom: 3%;
+  margin-left: 3%;
+}
+.articles {
+  padding: 3%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+  grid-gap: 10px;
+}
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  margin: 10px;
+}
+.create-post {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+  margin-bottom: 4rem;
+  background-color: aliceblue;
+  padding: 0.4rem, var(--card-padding);
+  padding-left: 1.5rem;
+  border-radius: var(--border-radius);
+}
+.create-post input[type="text"] {
+  justify-self: start;
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding-left: 1rem;
+  color: var(--bg-color);
+}
+.create-post input[type="submit"] {
+  border-radius: 1rem;
+  padding: 5%;
+  width: 5rem;
+  padding: 1rem;
+  margin: 1rem;
+  font-size: 0.6rem;
+  border: none;
+  background-color: var(--bg-color);
+  color: aliceblue;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  box-shadow: 0px 0px 12px rgba(49, 155, 241, 0.4);
+}
+
+.create-post input[type="submit"]:hover {
+  background-color: #1f2020ef;
+}
+
+/* <!-- =========================== Left =========================== --> */
+.left {
+  height: max-content;
+  position: sticky;
+  top: var(--sticky-top-left);
+}
+.left h3,
+h4 {
+  font-size: 1.3rem;
+}
+
+.left .profile {
+  display: flex;
+  align-items: center;
+  padding: var(--card-padding);
+  background: var(--dark-bg-color);
+  border-radius: var(--card-border-radius);
+  column-gap: 1rem;
+  width: 100%;
+  font-size: small;
+  text-decoration: none;
+  color: aliceblue;
+}
+
+.left .profile .profile-photo {
+  width: 4rem;
+  height: auto;
+}
+
+/* <!-- SIDEBAR --> */
+.left .sidebar {
+  margin-top: 1rem;
+  background: var(--dark-bg-color);
+  border-radius: var(--card-border-radius);
+  /* padding: var(--card-padding); */
+}
+.left .sidebar .menu-item {
+  display: flex;
+  align-items: center;
+  height: 4rem;
+  cursor: pointer;
+  transition: all 400ms ease;
+  position: relative;
+}
+.left .sidebar .menu-item:hover {
+  background: var(--bg-color);
+}
+.left .sidebar i {
+  font-size: 1.4rem;
+  color: var(--grey-color);
+  position: relative;
+  margin-left: 2rem;
+}
+a.menu-item {
+  text-decoration: none;
+  color: aliceblue;
+}
+.left label {
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+  padding-top: 15px;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+}
+.left label:hover {
+  padding-top: 15px;
+  background-color: var(--dark-bg-color);
+}
+
+.left .sidebar h3 {
+  margin-top: 0.5rem;
+  margin-left: 1.5rem;
+}
+
+.left .sidebar .active {
+  background: var(--bg-color);
+}
+
+.left .sidebar .active i,
+.left .sidebar .active h3 {
+  color: var(--main-color);
+}
+
+.left .sidebar .active::before {
+  content: "";
+  display: block;
+  width: 0.5rem;
+  height: 100%;
+  position: absolute;
+  background-color: var(--main-color);
+}
+
+.left .sidebar .menu-item:first-child.active {
+  border-top-left-radius: var(--card-border-radius);
+  overflow: hidden;
+}
+
+.left .sidebar .menu-item:last-child.active {
+  border-bottom-left-radius: var(--card-border-radius);
+  overflow: hidden;
+}
+
+@media screen and (min-width: 2100px) {
+  .left {
+    margin-left: 30%;
+  }
+}
+
+/* <!-- =========================== FEEDS =========================== --> */
+
+.mid .feeds .feed {
+  background-color: var(--dark-bg-color);
+  border-radius: var(--card-border-radius);
+  padding: var(--card-padding);
+  margin: 1rem 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.mid .feed .head {
+  display: flex;
+  justify-content: space-between;
+}
+.mid .feed .user {
+  display: flex;
+  gap: 1rem;
+}
+
+.mid .feed .photo {
+  border-radius: var(--card-border-radius);
+  overflow: hidden;
+  margin-top: 0.7rem;
+  margin-bottom: 0.7rem;
+  max-height: 70vh;
+}
+.mid .feed .action-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.4rem;
+  margin: 0.6rem;
+}
+
+.mid .liked-by {
+  display: flex;
+}
+.mid .liked-by span {
+  width: 1.4rem;
+  height: 1.4rem;
+  display: block;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid white;
+  margin-left: -0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.mid .liked-by span:first-child {
+  margin: 0;
+}
+
+.mid .liked-by p {
+  margin-left: 0.5rem;
 }
