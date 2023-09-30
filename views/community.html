@@ -77,11 +77,19 @@
               <img src="./images/userImg/me.jpg" alt="profile-photo">
             </div>
               <input type="text" placeholder="Share a surfing expirience, Eden" id="create-post">
+              <label for="inputImg">
+                <input type="file" accept="image/jpeg, image/png, image/jpg" id="inputImg">
+                <!-- <input type="file" accept="image/jpeg, image/png, image/jpg" onchange="previewFile()" id="inputImg"> -->
+                <i class="uil uil-image"></i>
+              </label>
               <input type="submit" value="Post" class="post">
-          </form>
-          <div class="container news">
-            <!-- =========================== FEEDS =========================== -->
-            <div class="feeds">            
+            </form>
+            <div class="container hidden img-preview">
+              <small class="text-muted">photo preview</small>
+              <img src="" heght="200" alt="" id="previewImg">
+            </div>
+          <!-- =========================== FEEDS =========================== -->
+          <div class="container feeds">            
             <!-- =========================== POST 1 =========================== -->
               <div class="feed">
                 <div class="head">
@@ -108,18 +116,18 @@
                     <span><i class="uil uil-share-alt"></i></span>
                   </div>
                 </div>
-                  <div class="liked-by">
-                    <span><img src="./images/userImg/user1.jpg" ></span>
-                    <span><img src="./images/userImg/user2.jpg" ></span>
-                    <span><img src="./images/userImg/user3.jpg" </span>
-                    <p>Liked by <b>Yoel Cohen </b>and 15 others</p>
-                  </div>
-                  <div class="caption">
-                    <p> <b>Neta Zano</b> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque faucibus faucibus tempor.</p>
-                  </div>
-                  <div class="comments text-muted">View all 23 comments</div>
+                <div class="liked-by">
+                  <span><img src="./images/userImg/user1.jpg" ></span>
+                  <span><img src="./images/userImg/user2.jpg" ></span>
+                  <span><img src="./images/userImg/user3.jpg" </span>
+                  <p>Liked by <b>Yoel Cohen </b>and 15 others</p>
+                </div>
+                <div class="caption">
+                  <p> <b>Neta Zano</b> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque faucibus faucibus tempor.</p>
+                </div>
+                <div class="comments text-muted">View all 23 comments</div>
               </div>
-            <!-- =========================== POST 2 =========================== -->
+              <!-- =========================== POST 2 =========================== -->
               <div class="feed">
                 <div class="head">
                   <div class="user">
@@ -145,18 +153,18 @@
                     <span><i class="uil uil-share-alt"></i></span>
                   </div>
                 </div>
-                  <div class="liked-by">
-                    <span><img src="./images/userImg/user1.jpg" ></span>
-                    <span><img src="./images/userImg/user2.jpg" ></span>
-                    <span><img src="./images/userImg/user3.jpg" </span>
-                    <p>Liked by <b>Yoel Cohen </b>and 15 others</p>
-                  </div>
-                  <div class="caption">
-                    <p> <b>Neta Zano</b> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque faucibus faucibus tempor.</p>
-                  </div>
-                  <div class="comments text-muted">View all 23 comments</div>
+                <div class="liked-by">
+                  <span><img src="./images/userImg/user1.jpg" ></span>
+                  <span><img src="./images/userImg/user2.jpg" ></span>
+                  <span><img src="./images/userImg/user3.jpg" </span>
+                  <p>Liked by <b>Yoel Cohen </b>and 15 others</p>
+                </div>
+                <div class="caption">
+                  <p> <b>Neta Zano</b> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque faucibus faucibus tempor.</p>
+                </div>
+                <div class="comments text-muted">View all 23 comments</div>
               </div>
-            <!-- =========================== POST 3 =========================== -->
+              <!-- =========================== POST 3 =========================== -->
               <div class="feed">
                 <div class="head">
                   <div class="user">
@@ -182,32 +190,32 @@
                     <span><i class="uil uil-share-alt"></i></span>
                   </div>
                 </div>
-                  <div class="liked-by">
-                    <span><img src="./images/userImg/user1.jpg" ></span>
-                    <span><img src="./images/userImg/user2.jpg" ></span>
-                    <span><img src="./images/userImg/user3.jpg" </span>
-                    <p>Liked by <b>Yoel Cohen </b>and 15 others</p>
-                  </div>
-                  <div class="caption">
+                <div class="liked-by">
+                  <span><img src="./images/userImg/user1.jpg" ></span>
+                  <span><img src="./images/userImg/user2.jpg" ></span>
+                  <span><img src="./images/userImg/user3.jpg" </span>
+                  <p>Liked by <b>Yoel Cohen </b>and 15 others</p>
+                </div>
+                <div class="caption">
                     <p> <b>Neta Zano</b> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque faucibus faucibus tempor.</p>
                   </div>
                   <div class="comments text-muted">View all 23 comments</div>
-              </div>
-            <!-- =========================== POST 4 =========================== -->
-              <div class="feed">
-                <div class="head">
-                  <div class="user">
-                    <div class="profile-photo">
-                      <img src="./images/userImg/user1.jpg" alt="profile-photo">
+                </div>
+                <!-- =========================== POST 4 =========================== -->
+                <div class="feed">
+                  <div class="head">
+                    <div class="user">
+                      <div class="profile-photo">
+                        <img src="./images/userImg/user1.jpg" alt="profile-photo">
+                      </div>
+                      <div class="info">
+                        <h3>Neta Zano</h3>
+                        <small><b>Dubai</b>, 15 minutes ago</small>
+                      </div>
                     </div>
-                    <div class="info">
-                      <h3>Neta Zano</h3>
-                      <small><b>Dubai</b>, 15 minutes ago</small>
-                    </div>
-                  </div>
-                  <span class="edit">
-                    <i class="uil uil-ellipsis-h"></i>
-                  </span>
+                    <span class="edit">
+                      <i class="uil uil-ellipsis-h"></i>
+                    </span>
                 </div>
                 <div class="photo">
                   <img src="./images/surfer.jpg" alt="">
@@ -219,38 +227,39 @@
                     <span><i class="uil uil-share-alt"></i></span>
                   </div>
                 </div>
-                  <div class="liked-by">
-                    <span><img src="./images/userImg/user1.jpg" ></span>
-                    <span><img src="./images/userImg/user2.jpg" ></span>
-                    <span><img src="./images/userImg/user3.jpg" </span>
-                    <p>Liked by <b>Yoel Cohen </b>and 15 others</p>
-                  </div>
-                  <div class="caption">
-                    <p> <b>Neta Zano</b> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque faucibus faucibus tempor.</p>
-                  </div>
-                  <div class="comments text-muted">View all 23 comments</div>
+                <div class="liked-by">
+                  <span><img src="./images/userImg/user1.jpg" ></span>
+                  <span><img src="./images/userImg/user2.jpg" ></span>
+                  <span><img src="./images/userImg/user3.jpg" </span>
+                  <p>Liked by <b>Yoel Cohen </b>and 15 others</p>
+                </div>
+                <div class="caption">
+                  <p> <b>Neta Zano</b> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque faucibus faucibus tempor.</p>
+                </div>
+                <div class="comments text-muted">View all 23 comments</div>
               </div>
             </div>
-
+            
             <!-- =========================== NEWS =========================== -->
-            <h1>Surf News</h1>
-            <div class="articles">
-              <div class="card" style="width: 18rem">
-                <img
-                  class="card-img-top"
-                  src="./images/surfer1.jpg"
-                  alt="Card image cap"
-                />
-                <div class="card-body">
-                  <h5 class="card-title">Card title</h5>
-                  <p class="card-text">
-                    Some quick example text to build on the card title and make up
-                    the bulk of the card's content.
-                  </p>
-                  <a href="#" class="btn btn-primary">Go somewhere</a>
+            <div class="container news">
+              <h1>Surf News</h1>
+              <div class="articles">
+                <div class="card" style="width: 18rem">
+                  <img
+                    class="card-img-top"
+                    src="./images/surfer1.jpg"
+                    alt="Card image cap"
+                  />
+                  <div class="card-body">
+                    <h5 class="card-title">Card title</h5>
+                    <p class="card-text">
+                      Some quick example text to build on the card title and make up
+                      the bulk of the card's content.
+                    </p>
+                    <a href="#" class="btn btn-primary">Go somewhere</a>
+                  </div>
                 </div>
               </div>
-            </div>
           </div>
       </div>
     </main>
