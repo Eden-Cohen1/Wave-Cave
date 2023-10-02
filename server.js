@@ -1,5 +1,6 @@
 // SERVER
 import express, { urlencoded, json } from "express";
+// import mongoose from "mongoose";
 import { join } from "path";
 import cors from "cors";
 import { logger, logEvents } from "./logEvents.js";
@@ -11,10 +12,6 @@ const app = express();
 const PORT = process.env.PORT || 3500;
 const currentFileUrl = import.meta.url;
 const currentDir = dirname(fileURLToPath(currentFileUrl));
-// Middleware
-//custom middlewate logger
-app.use(logger);
-//Cross Origin Resource Sharing
 const whitelist = [
   "https://www.wavecave.com",
   "http://127.0.0.1:5500",
@@ -31,7 +28,9 @@ const corsOptions = {
   },
   optionsSuccessStatus: 200,
 };
+
 app.use(cors(corsOptions));
+app.use(logger);
 
 //loading all images, scripts and css
 console.log(currentDir);
@@ -64,6 +63,16 @@ app.use(function (err, req, res, next) {
   res.status(500).send(err.message);
 });
 
+// mongoose
+//   .connect(
+//     "mongodb+srv://edenfortesting:<1ea61d5d14>@cluster0.vij0auc.mongodb.net/WaveCave?retryWrites=true&w=majority&appName=AtlasApp"
+//   )
+//   .then(() =>
+//     app.listen(PORT, () => {
+//       console.log(`Server ruuning on ${PORT}`);
+//     })
+//   );
+
 //Port
 app.listen(PORT, () => {
   console.log(`Server ruuning on ${PORT}`);
@@ -74,7 +83,6 @@ app.listen(PORT, () => {
 
 //Article Data
 import { fetchArticles, wrapArticles, lastAPIcall } from "./public/js/news.js";
-import { log } from "console";
 
 async function fetchAndProccessArticles() {
   let allArticles;

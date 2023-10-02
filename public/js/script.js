@@ -21,8 +21,6 @@ let tableDiv = document.createElement("div");
 tableDiv.classList.add("table-group");
 tableDiv.appendChild(table);
 tableGroup.appendChild(tableDiv);
-// btnForecast.style.opacity = 0;
-// btnCommunity.style.opacity = 0;
 
 //-----------------------------------------------------------------------
 
@@ -30,20 +28,7 @@ tableGroup.appendChild(tableDiv);
 if (history.scrollRestoration) {
   history.scrollRestoration = "manual";
 }
-//ENTER THE CAVE
-
-// function allowScroll() {
-//   body.style["overflow-y"] = "auto";
-//   // section1.scrollIntoView({ behavior: "smooth" });
-//   btnEnter.style.opacity = 0;
-//   btnForecast.style.opacity = 1;
-//   btnCommunity.style.opacity = 1;
-//   overlay.style.background = `linear-gradient(rgba(31, 32, 32, 0.184), var(--bg-color))`;
-// }
-// btnEnter.addEventListener("click", allowScroll);
-//-----------------------------------------------------------------------
-
-// INITIATE TABLES
+// <=========================== INITIATE TABLES ===========================> //
 let divCounter = 2;
 init();
 function init() {
@@ -82,7 +67,7 @@ function init() {
 }
 //-----------------------------------------------------------------------
 
-//UPDATING TABLE WITH DATA [DATA=DATA[HOURS]]
+// <=========================== UPDATING TABLE WITH DATA ===========================> //
 
 const allTables = document.querySelectorAll(".wave-table");
 async function fetchForecastData() {
@@ -186,7 +171,7 @@ function fillStarRating(col, rating) {
 }
 //-----------------------------------------------------------------------
 
-// PAGE NAVIGATION
+// <=========================== PAGE NAVIGATION ===========================> //
 btnForecast.addEventListener("click", function (e) {
   e.preventDefault();
   const sectionID = e.target.getAttribute("href");
@@ -211,7 +196,7 @@ btnForecast.addEventListener("click", function (e) {
 
 //-----------------------------------------------------------------------
 
-// REVEAL IMGES
+// <=========================== REVEAL IMGES ===========================> //
 const bgImages = document.querySelectorAll(".bg-img");
 
 function reavelImges(entries, observer) {
@@ -228,7 +213,7 @@ const imgObserver = new IntersectionObserver(reavelImges, {
 bgImages.forEach((img) => imgObserver.observe(img));
 //-----------------------------------------------------------------------
 
-// REVEAL TABLES
+// <=========================== REVEAL TABLES ===========================> //
 function revealTable(entries, observer) {
   const [entry] = entries;
   if (entry.isIntersecting) {
