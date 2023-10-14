@@ -1,5 +1,7 @@
 // SERVER
 import express, { urlencoded, json } from "express";
+import { config } from "dotenv";
+import { connectDB } from "./public/db/dbConn.js";
 import mongoose from "mongoose";
 import { join } from "path";
 import cors from "cors";
@@ -7,9 +9,14 @@ import { logger, logEvents } from "./logEvents.js";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { writeFile, readFileSync } from "fs";
-import { promises as fsPromises } from "fs";
+import { User } from "./public/db/models/user.js";
+config();
+console.log(process.env.DATABASE_URI);
+//connect to mongoDB
+connectDB();
+//
 const app = express();
-const PORT = process.env.PORT || 3500;
+const PORT = process.env.PORT || 3600;
 const currentFileUrl = import.meta.url;
 const currentDir = dirname(fileURLToPath(currentFileUrl));
 const whitelist = [
@@ -41,6 +48,16 @@ app.use(json());
 //Pages, Redirect, 404.
 // home
 app.get("^/$|/index(.html)?", (req, res) => {
+  const user = new User({
+    name: "Eden Cohen",
+    country: "Israel",
+    age: 26,
+    email: "eden2@gmail.com",
+    handle: "eden2",
+    password: "7450",
+    img: "",
+  });
+  console.log(user);
   res.sendFile(join(currentDir, "views", "index.html"));
 });
 // community
@@ -63,17 +80,21 @@ app.use(function (err, req, res, next) {
   res.status(500).send(err.message);
 });
 
-mongoose
-  .connect(
-    "mongodb+srv://edenfortesting:1ea61d5d14@cluster0.vij0auc.mongodb.net/?retryWrites=true&w=majority&appName=AtlasApp"
-  )
-  .then(() =>
-    app.listen(PORT, () => {
-      console.log(`Server ruuning on ${PORT}`);
-    })
-  );
-
-//Port
+// mongoose
+//   .connect(
+//     "mongodb+srv://edenfortesting:1ea61d5d14@cluster0.vij0auc.mongodb.net/?retryWrites=true&w=majority&appName=AtlasApp"
+//   )
+//   .then(() =>
+//     app.listen(PORT, () => {
+//       console.log(`Server ruuning on ${PORT}`);
+//     })
+//   );
+mongoose.connection.once("open", () => {
+  console.log("connected to mongodb");
+  app.listen(PORT, () => {
+    console.log(`Server ruuning on ${PORT}`);
+  });
+});
 // app.listen(PORT, () => {
 //   console.log(`Server ruuning on ${PORT}`);
 // });

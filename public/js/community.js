@@ -183,19 +183,21 @@ function loadPost() {
 //-----------------------------------------------------------------------
 
 // <=========================== LIKE/COMMENT/SHARE ===========================> //
-const formComment = document.querySelector('.comment-input');
-const btnLike = document.querySelector('.uil-heart')
-const btnComment = document.querySelector('.uil-comment-dots')
-const btnShare = document.querySelector('.uil-share-alt')
+const formComment = document.querySelector(".comment-input");
+const btnLike = document.querySelector(".uil-heart");
+const btnComment = document.querySelector(".uil-comment-dots");
+const btnShare = document.querySelector(".uil-share-alt");
 
-btnLike.addEventListener('click', function(e){
+btnLike.addEventListener("click", function (e) {
   e.preventDefault();
-  const post = btnLike.closest('.feed')
-  post.likes.push(currentUser)
+  const post = btnLike.closest(".feed");
+  post.likes.push(currentUser);
   post.generateHtml();
-})
+});
 
-btnComment.addEventListener('click', function(e){
+btnComment.addEventListener("click", function (e) {
   e.preventDefault();
-  formComment.classList.contains('hidden') ? formComment.classList.remove('hidden'): formComment.classList.add('hidden');
-})
+  formComment.classList.contains("hidden")
+    ? formComment.classList.remove("hidden")
+    : formComment.classList.add("hidden");
+});

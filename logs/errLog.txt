@@ -1,2 +1,10 @@
 25/09/2023	15:30:31	 abdbfcf5-d259-4182-8566-5da14da41718 	 TypeError: path.includes is not a function
 25/09/2023	19:01:41	 9144790e-804f-4991-99d3-6649e4bc1299 	 TypeError: path.jin is not a function
+14/10/2023	14:21:00	 e76740bb-60b6-4af3-87f1-f8087f964a8c 	 Error: Not allowed by CORS
+14/10/2023	14:21:00	 d4ef07cb-aaf9-48d8-b8af-6ef768f4ba9c 	 Error: Not allowed by CORS
+14/10/2023	14:21:00	 d3919ff0-a028-4828-99a9-a56314277338 	 Error: Not allowed by CORS
+14/10/2023	14:21:02	 d0766ae9-3649-4d34-be0a-87b3ad0f73c5 	 Error: Not allowed by CORS
+14/10/2023	14:39:35	 77a46cc5-49f9-4af8-9e32-261a9fb45e0e 	 ObjectParameterError: Parameter "obj" to Document() must be an object, got "Eden Cohen" (type string)
+14/10/2023	14:41:40	 a9a2999f-ccc7-4313-9b9a-a49159dccb38 	 Error: Not allowed by CORS
+14/10/2023	14:41:40	 f22fb916-5e9a-474c-91cd-13a0be8e29b4 	 Error: Not allowed by CORS
+14/10/2023	14:41:40	 d508d619-bac1-46e0-82be-3b01b4ce8a85 	 Error: Not allowed by CORS
