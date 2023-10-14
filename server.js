@@ -1,6 +1,6 @@
 // SERVER
 import express, { urlencoded, json } from "express";
-// import mongoose from "mongoose";
+import mongoose from "mongoose";
 import { join } from "path";
 import cors from "cors";
 import { logger, logEvents } from "./logEvents.js";
@@ -63,20 +63,20 @@ app.use(function (err, req, res, next) {
   res.status(500).send(err.message);
 });
 
-// mongoose
-//   .connect(
-//     "mongodb+srv://edenfortesting:<1ea61d5d14>@cluster0.vij0auc.mongodb.net/WaveCave?retryWrites=true&w=majority&appName=AtlasApp"
-//   )
-//   .then(() =>
-//     app.listen(PORT, () => {
-//       console.log(`Server ruuning on ${PORT}`);
-//     })
-//   );
+mongoose
+  .connect(
+    "mongodb+srv://edenfortesting:1ea61d5d14@cluster0.vij0auc.mongodb.net/?retryWrites=true&w=majority&appName=AtlasApp"
+  )
+  .then(() =>
+    app.listen(PORT, () => {
+      console.log(`Server ruuning on ${PORT}`);
+    })
+  );
 
 //Port
-app.listen(PORT, () => {
-  console.log(`Server ruuning on ${PORT}`);
-});
+// app.listen(PORT, () => {
+//   console.log(`Server ruuning on ${PORT}`);
+// });
 
 // Route handlers
 // ---------------------------------------------------------------
