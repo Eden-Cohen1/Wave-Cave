@@ -7,6 +7,7 @@ export const connectDB = async () => {
       useNewUrlParser: true,
     });
   } catch (err) {
+    console.log("err at dbConn");
     console.error(err);
   }
 };

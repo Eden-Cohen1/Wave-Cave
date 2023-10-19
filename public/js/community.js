@@ -1,13 +1,18 @@
 "use strict";
 import { Post, Comment } from "./post.js";
 import { User } from "./user.js";
+// import { createUser } from "../server.js";
+// import { newUser } from "../db/models/user.js";
 
 const postForm = document.querySelector(".create-post");
 const signupForm = document.querySelector(".signup__form");
+const loginForm = document.querySelector(".login__form");
 const sidebarNews = document.querySelector("#news");
 const sidebarFeed = document.querySelector("#feed");
+const btnLogo = document.querySelector(".logo-img");
 const btnSignup = document.querySelector(".signup");
 const btnLogin = document.querySelector(".login");
+const btnLogout = document.querySelector(".logout");
 const btnCloseModalSU = document.querySelector(
   ".sign-up-modal .btn--close-modal"
 );
@@ -24,6 +29,10 @@ const newsContainer = document.querySelector(".news");
 const feedHtml = document.querySelector(".feed");
 const previewContainer = document.querySelector(".img-preview");
 const menuItems = document.querySelectorAll(".menu-item");
+let formComment = document.querySelector(".comment-input");
+let btnLike = document.querySelector(".uil-heart");
+let btnComment = document.querySelectorAll(".uil-comment-dots");
+let btnShare = document.querySelector(".uil-share-alt");
 let currPostImgSrc = "";
 let currProfileImgSrc = "";
 function addArticle(articles) {
@@ -35,6 +44,10 @@ function addArticle(articles) {
 addArticle(8);
 const users = [];
 
+//home
+btnLogo.addEventListener("click", () => {
+  window.location.href = "/";
+});
 // <=========================== LOGIN MODAL ===========================> //
 
 const openModalLG = function (e) {
@@ -51,6 +64,42 @@ const closeModalLG = function () {
 btnCloseModalLG.addEventListener("click", closeModalLG);
 btnLogin.addEventListener("click", openModalLG);
 
+loginForm.addEventListener("submit", function (e) {
+  e.preventDefault();
+  const email = loginForm.querySelector(".email").value;
+  const password = loginForm.querySelector(".password").value;
+  fetch("/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, password }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      updateUser(data);
+      btnSignup.classList.add("hidden");
+      btnLogin.classList.add("hidden");
+      btnLogout.classList.remove("hidden");
+      closeModalLG();
+    });
+});
+
+function updateUser(user) {
+  const profilePohots = document.querySelectorAll(
+    ".profile-photo.curr-user img"
+  );
+  const handle = document.querySelector(".hashtag");
+  const name = document.querySelector(".handle h4");
+  const postHolder = document.querySelector(".create-post input");
+  currentUser = user;
+  profilePohots.forEach((img) => (img.src = user.img));
+  handle.textContent = user.handle;
+  name.textContent = user.name;
+  postHolder.placeholder = `Share a surfing expirience, ${
+    user.name.split(" ")[0]
+  }`;
+}
 // <=========================== SIGNUP MODAL ===========================> //
 
 const openModalSU = function (e) {
@@ -67,34 +116,10 @@ const closeModalSU = function () {
 btnCloseModalSU.addEventListener("click", closeModalSU);
 btnSignup.addEventListener("click", openModalSU);
 
-//SIGNUP DATA//
-signupForm.addEventListener("submit", function (e) {
-  e.preventDefault();
-  const name = `${document.querySelector(".first-name").value} ${
-    document.querySelector(".last-name").value
-  }`;
-  const country = document.querySelector(".country").value;
-  const age = document.querySelector(".age").value;
-  const email = document.querySelector(".email").value;
-  const password = document.querySelector(".password").value;
-  const handle = email.split("@")[0];
-  const user = new User(
-    name,
-    country,
-    age,
-    email,
-    handle,
-    password,
-    currProfileImgSrc
-  );
-  //add user to data-base
-  users.push(user);
-});
 //PROFILE PHOTO//
 const inputProfileImg = document.querySelector("#inputProfileImg");
 inputProfileImg.addEventListener("change", previewProfileImg);
 function previewProfileImg() {
-  console.log("aaaaaaaaaaaaaaaaaaaa");
   const preview = document.querySelector("#previewProfileImg");
   preview.classList.remove("hidden");
   const file = signupForm.querySelector("input[type=file]").files[0];
@@ -102,8 +127,6 @@ function previewProfileImg() {
   reader.onload = function () {
     preview.src = reader.result;
     preview.classList.remove("hidden");
-    console.log("asdasdas");
-    currPostImgSrc = reader.result;
   };
   if (file) {
     reader.readAsDataURL(file);
@@ -161,7 +184,7 @@ function previewFile() {
   }
 }
 //post click//
-const currentUser = new User("Eden Cohen", 26, "Israel");
+let currentUser = new User("Eden Cohen", 26, "Israel");
 postForm.addEventListener("submit", function (e) {
   e.preventDefault();
   previewContainer.classList.add("hidden");
@@ -173,6 +196,8 @@ postForm.addEventListener("submit", function (e) {
   const postHtml = post.generateHtml();
   feedContainer.insertAdjacentHTML("afterbegin", postHtml);
   //write post to data base
+  btnComment = document.querySelectorAll(".uil-comment-dots");
+  postBtnsListen();
 });
 
 function loadPost() {
@@ -183,21 +208,24 @@ function loadPost() {
 //-----------------------------------------------------------------------
 
 // <=========================== LIKE/COMMENT/SHARE ===========================> //
-const formComment = document.querySelector(".comment-input");
-const btnLike = document.querySelector(".uil-heart");
-const btnComment = document.querySelector(".uil-comment-dots");
-const btnShare = document.querySelector(".uil-share-alt");
 
-btnLike.addEventListener("click", function (e) {
-  e.preventDefault();
-  const post = btnLike.closest(".feed");
-  post.likes.push(currentUser);
-  post.generateHtml();
-});
+function postBtnsListen() {
+  btnLike.addEventListener("click", function (e) {
+    e.preventDefault();
+    const post = btnLike.closest(".feed");
+    post.likes.push(currentUser);
+    post.generateHtml();
+  });
 
-btnComment.addEventListener("click", function (e) {
-  e.preventDefault();
-  formComment.classList.contains("hidden")
-    ? formComment.classList.remove("hidden")
-    : formComment.classList.add("hidden");
-});
+  btnComment.forEach((btn) =>
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      const formID = btn.dataset.itemId;
+      const form = document.querySelector(`#${formID}`);
+      form.classList.contains("hidden")
+        ? form.classList.remove("hidden")
+        : form.classList.add("hidden");
+    })
+  );
+}
+postBtnsListen();

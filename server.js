@@ -1,5 +1,6 @@
 // SERVER
 import express, { urlencoded, json } from "express";
+import multer from "multer";
 import { config } from "dotenv";
 import { connectDB } from "./public/db/dbConn.js";
 import mongoose from "mongoose";
@@ -11,12 +12,11 @@ import { dirname } from "path";
 import { writeFile, readFileSync } from "fs";
 import { User } from "./public/db/models/user.js";
 config();
-console.log(process.env.DATABASE_URI);
 //connect to mongoDB
 connectDB();
 //
 const app = express();
-const PORT = process.env.PORT || 3600;
+const PORT = process.env.PORT || 3500;
 const currentFileUrl = import.meta.url;
 const currentDir = dirname(fileURLToPath(currentFileUrl));
 const whitelist = [
@@ -36,11 +36,20 @@ const corsOptions = {
   optionsSuccessStatus: 200,
 };
 
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/"); // Set the destination folder for uploaded files
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname); // Set the file name to the original name
+  },
+});
+const upload = multer({ storage: storage });
+
 app.use(cors(corsOptions));
 app.use(logger);
 
 //loading all images, scripts and css
-console.log(currentDir);
 app.use(express.static(join(currentDir, "/public")));
 app.use(urlencoded({ extended: false }));
 app.use(json());
@@ -48,16 +57,6 @@ app.use(json());
 //Pages, Redirect, 404.
 // home
 app.get("^/$|/index(.html)?", (req, res) => {
-  const user = new User({
-    name: "Eden Cohen",
-    country: "Israel",
-    age: 26,
-    email: "eden2@gmail.com",
-    handle: "eden2",
-    password: "7450",
-    img: "",
-  });
-  console.log(user);
   res.sendFile(join(currentDir, "views", "index.html"));
 });
 // community
@@ -68,6 +67,22 @@ app.get("/community(.html)?", (req, res) => {
 app.get("/old-page(.html)?", (req, res) => {
   res.redirect(301, +"/"); // 302
 });
+
+//newUser form
+app.post("/newUser", upload.single("image"), (req, res) => {
+  const name = `${req.body.firstname} ${req.body.lastname}`;
+  const { country, age, email, password } = req.body;
+  const profileImg = req.file?.path || "./images/profile-photo.png";
+  const handle = email.split("@")[0];
+  createUser(name, country, age, email, handle, password, profileImg);
+  res.sendFile(join(currentDir, "views", "community.html"));
+});
+
+app.post(`/login`, async (req, res) => {
+  const { email, password } = req.body;
+  const user = await findUser(email, password);
+  res.json(user);
+});
 // 404
 app.all("*", (req, res) => {
   res.status(404).sendFile(join(currentDir, "views", "404.html"));
@@ -76,32 +91,58 @@ app.all("*", (req, res) => {
 //Error Handler
 app.use(function (err, req, res, next) {
   logEvents(`${err.name}: ${err.message}`, "errLog.txt");
-  console.error(err.stack);
   res.status(500).send(err.message);
 });
 
-// mongoose
-//   .connect(
-//     "mongodb+srv://edenfortesting:1ea61d5d14@cluster0.vij0auc.mongodb.net/?retryWrites=true&w=majority&appName=AtlasApp"
-//   )
-//   .then(() =>
-//     app.listen(PORT, () => {
-//       console.log(`Server ruuning on ${PORT}`);
-//     })
-//   );
 mongoose.connection.once("open", () => {
   console.log("connected to mongodb");
   app.listen(PORT, () => {
     console.log(`Server ruuning on ${PORT}`);
   });
 });
-// app.listen(PORT, () => {
-//   console.log(`Server ruuning on ${PORT}`);
-// });
 
 // Route handlers
 // ---------------------------------------------------------------
 
+//Create User//
+export async function createUser(
+  name,
+  country,
+  age,
+  email,
+  handle,
+  password,
+  img
+) {
+  const user = new User({
+    name: name,
+    country: country,
+    age: age,
+    email: email,
+    handle: handle,
+    password: password,
+    dateJoined: new Date().toISOString().split("T")[0],
+    img: img,
+  });
+  await user
+    .save()
+    .then((newUser) => {
+      console.log("user created: ", newUser);
+    })
+    .catch((err) => console.error("Error creating user:", err));
+}
+
+async function findUser(email, password) {
+  const user = await User.findOne({
+    email: email,
+    password: password,
+  }).exec();
+  if (!user) {
+    throw new Error("User not found");
+  }
+  console.log("Found user", user);
+  return user;
+}
 //Article Data
 import { fetchArticles, wrapArticles, lastAPIcall } from "./public/js/news.js";
 
@@ -119,7 +160,6 @@ async function fetchAndProccessArticles() {
 async function main() {
   const allArticles = await fetchAndProccessArticles();
   //update ui with correct data
-  console.log(allArticles);
 }
 // ---------------------------------------------------------------
 //Forecast Data

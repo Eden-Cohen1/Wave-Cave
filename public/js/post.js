@@ -14,6 +14,7 @@ export class Post {
     this.img = imgSrc;
     this.likes = [];
     this.comments = [];
+    this.id = `${user.name}${time}`;
   }
   generateHtml() {
     let likeByHtml;
@@ -53,13 +54,22 @@ export class Post {
         <div class="action-buttons">
           <div class="interaction-buttons">
             <span><i class="uil uil-heart"></i></span>
-            <span><i class="uil uil-comment-dots"></i></span>
+            <span><i class="uil uil-comment-dots" data-item-id=${this.id}></i></span>
             <span><i class="uil uil-share-alt"></i></span>
           </div>
         </div>
         <div class="liked-by">
             ${likeByHtml}
         </div>
+        <div class="comment-input hidden" id=${this.id}>
+        <form class="container post-comment">
+          <div class="profile-photo">
+            <img src="./images/userImg/me.jpg" alt="profile-photo">
+          </div>
+            <input type="text" placeholder="Leave a comment" id="post-comment">
+            <input type="submit" value="Comment" class="post">
+          </form>
+    </div>
         <div class="comments text-muted">View all ${this.comments.length} comments</div>
       </div>`;
     return html;

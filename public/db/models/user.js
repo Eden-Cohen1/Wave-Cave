@@ -1,3 +1,4 @@
+"use strict";
 import mongoose from "mongoose";
 const userSchema = new mongoose.Schema({
   name: String,
@@ -6,7 +7,8 @@ const userSchema = new mongoose.Schema({
   email: String,
   handle: String,
   password: String,
+  dateJoined: String,
   img: String,
 });
 
-export const User = mongoose.model("User", userSchema);
+export const User = mongoose.model("newUser", userSchema);

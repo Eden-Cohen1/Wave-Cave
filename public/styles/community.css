@@ -89,7 +89,6 @@ nav {
 nav .container {
   display: flex;
   align-items: center;
-  justify-content: space-between;
 }
 
 nav .search-bar {
@@ -97,7 +96,7 @@ nav .search-bar {
   border-radius: var(--border-radius);
   padding: var(--search-padding);
   display: flex;
-  margin-left: 1rem;
+  margin-left: 4rem;
   margin-right: 1rem;
 }
 nav .search-bar input[type="search"] {
@@ -118,7 +117,7 @@ ul {
 }
 
 .nav-item {
-  margin-right: 15%;
+  margin-right: 5%;
 }
 nav li {
   display: flex;
@@ -200,6 +199,11 @@ main {
   margin-left: 3%;
   width: 100px;
   height: 50px;
+  cursor: pointer;
+  transition: 0.5s;
+}
+.logo-img:hover {
+  transform: translateY(0.2rem);
 }
 .overlay h1 {
   margin-bottom: 3%;
@@ -285,16 +289,15 @@ input[type="file"] {
   padding: 0.2rem, 0.5rem;
   padding-left: 1rem;
   border-radius: var(--border-radius);
-  left:0;
+  left: 0;
 }
 .post-comment .profile-photo {
   width: 2.5rem;
   height: auto;
 }
-.post-comment input[type="submit"]{
+.post-comment input[type="submit"] {
   height: auto;
   font-size: 0.5rem;
-
 }
 #previewImg {
   max-width: 15rem;
@@ -500,8 +503,7 @@ a.menu-item {
 
 i.uil-heart:hover,
 i.uil-comment-dots:hover,
-i.uil-share-alt:hover
-{
+i.uil-share-alt:hover {
   color: var(--main-color);
   cursor: pointer;
 }
@@ -659,6 +661,10 @@ i.uil-share-alt:hover
   border: none;
 }
 
+.logout {
+  align-items: center;
+  justify-content: center;
+}
 .btn--close-modal {
   font-family: inherit;
   color: inherit;
