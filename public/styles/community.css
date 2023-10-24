@@ -41,7 +41,7 @@ h1 {
     opacity: 1;
   }
 }
-body {
+/* body {
   padding: 20%;
   overflow-x: hidden;
   z-index: 99;
@@ -52,22 +52,31 @@ body {
   background-position-x: -20rem;
   background-position-y: 20rem;
   overflow-y: hidden;
-}
+} */
 
+body {
+  margin-top: 0px;
+  margin-left: 0px;
+  margin-right: 0px;
+  overflow-x: hidden;
+  /* overflow-y: hidden; */
+  background-color: var(--bg-color);
+  height: auto;
+}
 .text-muted {
   color: #121313;
 }
-.overlay {
+/* .overlay {
   position: fixed;
-  height: 100%;
-  width: 100%;
+  height: auto;
+  width: 100vw;
   background: linear-gradient(rgba(22, 22, 22, 0.849), var(--bg-color));
   top: 0px;
   left: 0px;
   z-index: 1000;
   overflow: scroll;
   overflow-x: hidden;
-}
+} */
 .container {
   width: 80%;
 }
@@ -176,6 +185,7 @@ input {
 main {
   position: relative;
   top: 10rem;
+  margin-top: 4rem;
 }
 main {
   display: grid;
@@ -444,7 +454,7 @@ a.menu-item {
   background-color: var(--lighter-bg-color);
   border-radius: var(--card-border-radius);
   padding: var(--card-padding);
-  margin: 1rem 0;
+  margin: 2.5rem 0;
   font-size: 0.85rem;
   line-height: 1.5;
   max-width: 100%;
@@ -723,9 +733,11 @@ i.uil-share-alt:hover {
 .container-footer {
   background-color: #181b1b;
   box-shadow: 10px 0px 10px 0px rgba(49, 155, 241, 0.17);
+  margin-bottom: 0;
 }
 
 footer {
+  width: 100%;
   margin-right: 20%;
   margin-left: 20%;
   margin-top: 20%;
@@ -735,4 +747,9 @@ footer {
 
 footer input {
   max-width: 50%;
+}
+
+.btn-active {
+  color: var(--main-color);
+  font-weight: bold;
 }

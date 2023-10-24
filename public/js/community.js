@@ -1,8 +1,4 @@
 "use strict";
-import { Post, Comment } from "./post.js";
-import { User } from "./user.js";
-// import { createUser } from "../server.js";
-// import { newUser } from "../db/models/user.js";
 
 const postForm = document.querySelector(".create-post");
 const signupForm = document.querySelector(".signup__form");
@@ -26,15 +22,19 @@ const article = document.querySelector(".card");
 const articleContainer = document.querySelector(".articles");
 const feedContainer = document.querySelector(".feeds");
 const newsContainer = document.querySelector(".news");
-const feedHtml = document.querySelector(".feed");
 const previewContainer = document.querySelector(".img-preview");
 const menuItems = document.querySelectorAll(".menu-item");
+
+let currentPage = 1;
+loadPosts();
 let formComment = document.querySelector(".comment-input");
-let btnLike = document.querySelector(".uil-heart");
-let btnComment = document.querySelectorAll(".uil-comment-dots");
-let btnShare = document.querySelector(".uil-share-alt");
+let btnsLike = document.querySelector(".uil-heart");
+let btnsComment = document.querySelectorAll(".uil-comment-dots");
+let btnsShare = document.querySelectorAll(".uil-share-alt");
 let currPostImgSrc = "";
 let currProfileImgSrc = "";
+let currentUser;
+getUserData();
 function addArticle(articles) {
   for (let i = 0; i < articles; i++) {
     articleContainer.appendChild(article.cloneNode(true));
@@ -44,10 +44,96 @@ function addArticle(articles) {
 addArticle(8);
 const users = [];
 
-//home
 btnLogo.addEventListener("click", () => {
   window.location.href = "/";
 });
+// <=========================== LOAD-POSTS ===========================> //
+const loadedPosts = new Set();
+
+async function loadPosts() {
+  const response = await fetch(`/api/feed?page=${currentPage}`);
+  const postHtmlList = await response.json();
+  if (postHtmlList.length > 0) {
+    const uniquePosts = postHtmlList.filter(
+      (post) => !loadedPosts.has(post.id)
+    );
+    uniquePosts.forEach((post) => {
+      feedContainer.insertAdjacentHTML("beforeend", post.html);
+      loadedPosts.add(post.id);
+    });
+
+    currentPage++;
+  }
+}
+// async function loadPosts() {
+//   const response = await fetch(`/api/feed?page=${currentPage}`);
+//   const postHtmlList = await response.json();
+//   if (postHtmlList.length > 0) {
+//     postHtmlList.forEach((post) => {
+//       feedContainer.insertAdjacentHTML("beforeend", post.html);
+//       const postElement = document.querySelector(`#${post.id}`);
+//       const likeBtn = postElement.querySelector(".uil-heart");
+//       likeBtn.addEventListener("click", async function (e) {
+//         e.preventDefault();
+//         console.log(likeBtn, "clicked");
+//         const postId = likeBtn.dataset.itemId;
+//         fetch("/like", {
+//           method: "POST",
+//           headers: {
+//             "Content-Type": "application/json",
+//           },
+//           body: JSON.stringify({ postId }),
+//         })
+//           .then((response) => response.json())
+//           .then((post) => {
+//             const likeText = postElement.querySelector(".liked-by p");
+//             likeText.textContent = `Liked by ${post.likes.length} people`;
+//             likeBtn.classList.add("btn-active");
+//           });
+//       });
+//       currentPage++;
+//     });
+//   }
+// }
+window.addEventListener("scroll", () => {
+  if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+    loadPosts();
+    btnsLike = document.querySelectorAll(".uil-heart");
+    btnsComment = document.querySelectorAll(".uil-comment-dots");
+    btnsShare = document.querySelectorAll(".uil-share-alt");
+  }
+});
+
+// <=========================== REFRESH ===========================> //
+
+function checkLoggedIn() {
+  const storedSession = localStorage.getItem("sessionData");
+  if (storedSession) {
+    return JSON.parse(storedSession);
+  }
+  return null; // User is not logged in
+}
+
+async function getUserData() {
+  const userInfo = checkLoggedIn();
+  if (!userInfo) {
+    return;
+  }
+  const response = await fetch("/user", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${userInfo.userId}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to retrieve user data");
+  }
+
+  const userData = await response.json();
+  updateUser(userData);
+}
 // <=========================== LOGIN MODAL ===========================> //
 
 const openModalLG = function (e) {
@@ -77,11 +163,17 @@ loginForm.addEventListener("submit", function (e) {
   })
     .then((response) => response.json())
     .then((data) => {
-      updateUser(data);
-      btnSignup.classList.add("hidden");
-      btnLogin.classList.add("hidden");
-      btnLogout.classList.remove("hidden");
+      if (!data) {
+        window.alert("Wrong email or password, please try again..");
+        closeModalLG();
+        return;
+      }
+      updateUser(data.currentUser);
       closeModalLG();
+      const sessionData = {
+        userId: data.currentUser.userID,
+      };
+      localStorage.setItem("sessionData", JSON.stringify(sessionData));
     });
 });
 
@@ -92,16 +184,20 @@ function updateUser(user) {
   const handle = document.querySelector(".hashtag");
   const name = document.querySelector(".handle h4");
   const postHolder = document.querySelector(".create-post input");
+  const postSection = document.querySelector(".create-post");
+  postSection.classList.remove("hidden");
   currentUser = user;
   profilePohots.forEach((img) => (img.src = user.img));
-  handle.textContent = user.handle;
+  handle.textContent = `@${user.handle}`;
   name.textContent = user.name;
   postHolder.placeholder = `Share a surfing expirience, ${
     user.name.split(" ")[0]
   }`;
+  btnSignup.classList.add("hidden");
+  btnLogin.classList.add("hidden");
+  btnLogout.classList.remove("hidden");
 }
 // <=========================== SIGNUP MODAL ===========================> //
-
 const openModalSU = function (e) {
   e.preventDefault();
   signupModal.classList.remove("hidden");
@@ -134,6 +230,27 @@ function previewProfileImg() {
     preview.src = "";
   }
 }
+//-----------------------------------------------------------------------
+
+// <=========================== LOGOUT ===========================> //
+
+btnLogout.addEventListener("click", () => {
+  localStorage.removeItem("sessionData");
+  const profilePohots = document.querySelectorAll(
+    ".profile-photo.curr-user img"
+  );
+  const handle = document.querySelector(".hashtag");
+  const name = document.querySelector(".handle h4");
+  const postSection = document.querySelector(".create-post");
+  handle.textContent = "@Guest";
+  name.textContent = "Guest";
+  profilePohots.forEach((img) => (img.src = "./images/profile-photo.png"));
+  postSection.classList.add("hidden");
+  btnLogout.classList.add("hidden");
+  btnLogin.classList.remove("hidden");
+  btnSignup.classList.remove("hidden");
+});
+
 //-----------------------------------------------------------------------
 
 // <=========================== SIDEBAR ===========================> //
@@ -184,48 +301,85 @@ function previewFile() {
   }
 }
 //post click//
-let currentUser = new User("Eden Cohen", 26, "Israel");
 postForm.addEventListener("submit", function (e) {
   e.preventDefault();
   previewContainer.classList.add("hidden");
-  const time = new Date().toLocaleString();
+
   const text = document.querySelector("#create-post");
   const postBody = text.value;
+  const imgName = inputImg.files[0] ? inputImg.files[0].name : "";
+  const formData = new FormData(e.target);
+  formData.append("imgName", imgName);
   text.value = "";
-  const post = new Post(currentUser, postBody, time, currPostImgSrc);
-  const postHtml = post.generateHtml();
-  feedContainer.insertAdjacentHTML("afterbegin", postHtml);
-  //write post to data base
-  btnComment = document.querySelectorAll(".uil-comment-dots");
-  postBtnsListen();
+
+  fetch("/Post", {
+    method: "POST",
+    body: formData,
+  })
+    .then((response) => response.json())
+    .then((html) => {
+      feedContainer.insertAdjacentHTML("afterbegin", html);
+    });
 });
 
-function loadPost() {
-  //get post list from data base
-  //post.generateHtml
-  //feedContanier.insert(afterstart)
-}
 //-----------------------------------------------------------------------
 
 // <=========================== LIKE/COMMENT/SHARE ===========================> //
 
-function postBtnsListen() {
-  btnLike.addEventListener("click", function (e) {
-    e.preventDefault();
-    const post = btnLike.closest(".feed");
-    post.likes.push(currentUser);
-    post.generateHtml();
-  });
-
-  btnComment.forEach((btn) =>
-    btn.addEventListener("click", function (e) {
-      e.preventDefault();
-      const formID = btn.dataset.itemId;
-      const form = document.querySelector(`#${formID}`);
-      form.classList.contains("hidden")
-        ? form.classList.remove("hidden")
-        : form.classList.add("hidden");
+feedContainer.addEventListener("click", async function (e) {
+  e.preventDefault();
+  if (e.target.classList.contains("uil-heart")) {
+    const targetPost = e.target.closest(".feed");
+    const postId = targetPost.getAttribute("id");
+    const likedBy = targetPost.querySelector(".liked-by p");
+    fetch("/like", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ postId }),
     })
-  );
-}
-postBtnsListen();
+      .then((response) => response.json())
+      .then((post) => {
+        if (!post) {
+          return;
+        }
+        likedBy.textContent = `Liked by ${post.likes.length} people`;
+        e.target.classList.add("btn-active");
+      });
+  }
+});
+
+// const postId = btn.closest(".feed");
+// btnsLike?.forEach(
+//   btn
+//     .addEventListener("click", function (e) {
+//       e.preventDefault();
+//       const postId = btn.dataset.itemId;
+//       fetch("/like", {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//         body: JSON.stringify({ postId }),
+//       });
+//     })
+//     .then((response) => response.json())
+//     .then((post) => {
+//       const parentElement = btn.closest();
+//       const likeText = parentElement.querySelector(".liked-by p");
+//       likeText.textContent = `Liked by ${post.likes.length} people`;
+//       btn.classList.add("btn-active");
+//     })
+// );
+
+// btnsComment.forEach((btn) =>
+//   btn?.addEventListener("click", function (e) {
+//     e.preventDefault();
+//     const formID = btn.dataset.itemId;
+//     const form = document.querySelector(`#${formID}`);
+//     form.classList.contains("hidden")
+//       ? form.classList.remove("hidden")
+//       : form.classList.add("hidden");
+//   })
+// );

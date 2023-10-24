@@ -1,20 +1,28 @@
 // SERVER
 import express, { urlencoded, json } from "express";
+import session from "express-session";
 import multer from "multer";
 import { config } from "dotenv";
 import { connectDB } from "./public/db/dbConn.js";
 import mongoose from "mongoose";
 import { join } from "path";
 import cors from "cors";
-import { logger, logEvents } from "./logEvents.js";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { writeFile, readFileSync } from "fs";
-import { User } from "./public/db/models/user.js";
+import crypto from "crypto";
+import {
+  User,
+  createUser,
+  findUser,
+  findUserById,
+} from "./public/db/models/user.js";
+import { Post, createPost } from "./public/db/models/post.js";
+const PAGE_SIZE = 5;
 config();
-//connect to mongoDB
 connectDB();
-//
+//variables
+let currentUser;
 const app = express();
 const PORT = process.env.PORT || 3500;
 const currentFileUrl = import.meta.url;
@@ -23,7 +31,7 @@ const whitelist = [
   "https://www.wavecave.com",
   "http://127.0.0.1:5500",
   "http://localhost:3500",
-]; // those are allowed to access the backend application (add React server for example) remove local after development
+];
 const corsOptions = {
   origin: (origin, callback) => {
     if (whitelist.indexOf(origin) !== -1 || !origin) {
@@ -35,7 +43,6 @@ const corsOptions = {
   },
   optionsSuccessStatus: 200,
 };
-
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads/"); // Set the destination folder for uploaded files
@@ -47,10 +54,19 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 app.use(cors(corsOptions));
-app.use(logger);
-
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 60 * 60 * 1000, // One hour
+    },
+  })
+);
 //loading all images, scripts and css
 app.use(express.static(join(currentDir, "/public")));
+app.use("/uploads", express.static("uploads"));
 app.use(urlencoded({ extended: false }));
 app.use(json());
 
@@ -63,11 +79,35 @@ app.get("^/$|/index(.html)?", (req, res) => {
 app.get("/community(.html)?", (req, res) => {
   res.sendFile(join(currentDir, "views", "community.html"));
 });
-// redirect
-app.get("/old-page(.html)?", (req, res) => {
-  res.redirect(301, +"/"); // 302
+//.filter((post) => !loadedPosts.has(post.id));
+const loadedPosts = new Set();
+app.get("/api/feed", async (req, res) => {
+  const page = req.query.page || 1;
+  const posts = await Post.find()
+    .sort({ createdAt: -1 })
+    .skip((page - 1) * PAGE_SIZE)
+    .limit(PAGE_SIZE);
+  const uniquePosts = posts;
+  const postHtmlList = uniquePosts.map((post) => {
+    loadedPosts.add(post.id);
+    return { html: post.generateHtml(), id: post.id };
+  });
+  res.json(postHtmlList);
 });
-
+app.get("/user", async (req, res) => {
+  try {
+    const userId = req.headers.authorization.split(" ")[1];
+    const user = await findUserById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    currentUser = user;
+    res.json(user);
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 //newUser form
 app.post("/newUser", upload.single("image"), (req, res) => {
   const name = `${req.body.firstname} ${req.body.lastname}`;
@@ -80,18 +120,36 @@ app.post("/newUser", upload.single("image"), (req, res) => {
 
 app.post(`/login`, async (req, res) => {
   const { email, password } = req.body;
-  const user = await findUser(email, password);
-  res.json(user);
+  currentUser = await findUser(email, password);
+  const sessionKey = generateKey();
+  if (!currentUser) {
+    res.json(null);
+    return;
+  }
+  res.json({ currentUser, sessionKey });
+});
+
+app.post("/Post", upload.single("postImage"), async (req, res) => {
+  const { postBody } = req.body;
+  const imgPath = req.body.imgName ? `./uploads/${req.body.imgName}` : "";
+  const post = await createPost(currentUser, postBody, imgPath);
+  const html = post.generateHtml();
+  res.json(html);
+});
+
+app.post("/like", async (req, res) => {
+  const { postId } = req.body;
+  const post = await Post.findOne({ id: postId }).exec();
+  if (post.likes.includes(currentUser._id, 0)) {
+    res.json(null);
+  }
+  post.likes.push(currentUser);
+  await post.save();
+  res.json(post);
 });
 // 404
 app.all("*", (req, res) => {
   res.status(404).sendFile(join(currentDir, "views", "404.html"));
-});
-
-//Error Handler
-app.use(function (err, req, res, next) {
-  logEvents(`${err.name}: ${err.message}`, "errLog.txt");
-  res.status(500).send(err.message);
 });
 
 mongoose.connection.once("open", () => {
@@ -103,46 +161,12 @@ mongoose.connection.once("open", () => {
 
 // Route handlers
 // ---------------------------------------------------------------
-
-//Create User//
-export async function createUser(
-  name,
-  country,
-  age,
-  email,
-  handle,
-  password,
-  img
-) {
-  const user = new User({
-    name: name,
-    country: country,
-    age: age,
-    email: email,
-    handle: handle,
-    password: password,
-    dateJoined: new Date().toISOString().split("T")[0],
-    img: img,
-  });
-  await user
-    .save()
-    .then((newUser) => {
-      console.log("user created: ", newUser);
-    })
-    .catch((err) => console.error("Error creating user:", err));
+export function generateKey() {
+  const key = crypto.randomBytes(16).toString("base64");
+  const sanitizedKey = key.replace(/[^a-zA-Z0-9-]/g, "-");
+  return sanitizedKey;
 }
 
-async function findUser(email, password) {
-  const user = await User.findOne({
-    email: email,
-    password: password,
-  }).exec();
-  if (!user) {
-    throw new Error("User not found");
-  }
-  console.log("Found user", user);
-  return user;
-}
 //Article Data
 import { fetchArticles, wrapArticles, lastAPIcall } from "./public/js/news.js";
 
@@ -185,8 +209,3 @@ async function UpdateForecastDB() {
   }
 }
 UpdateForecastDB();
-// async function main2() {
-//   const allArticles = await fetchAndProccessArticles();
-//   //update ui with correct data
-//   console.log(allArticles);
-// }
