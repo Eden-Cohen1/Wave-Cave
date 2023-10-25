@@ -26,7 +26,6 @@ const previewContainer = document.querySelector(".img-preview");
 const menuItems = document.querySelectorAll(".menu-item");
 
 let currentPage = 1;
-loadPosts();
 let formComment = document.querySelector(".comment-input");
 let btnsLike = document.querySelector(".uil-heart");
 let btnsComment = document.querySelectorAll(".uil-comment-dots");
@@ -34,7 +33,7 @@ let btnsShare = document.querySelectorAll(".uil-share-alt");
 let currPostImgSrc = "";
 let currProfileImgSrc = "";
 let currentUser;
-getUserData();
+loadPosts();
 function addArticle(articles) {
   for (let i = 0; i < articles; i++) {
     articleContainer.appendChild(article.cloneNode(true));
@@ -47,10 +46,44 @@ const users = [];
 btnLogo.addEventListener("click", () => {
   window.location.href = "/";
 });
+
+
+// <=========================== REFRESH ===========================> //
+
+function checkLoggedIn() {
+  const storedSession = localStorage.getItem("sessionData");
+  if (storedSession) {
+    return JSON.parse(storedSession);
+  }
+  return null; // User is not logged in
+}
+
+async function getUserData() {
+  const userInfo = checkLoggedIn();
+  if (!userInfo) {
+    return;
+  }
+  const response = await fetch("/user", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${userInfo.userId}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to retrieve user data");
+  }
+
+  const userData = await response.json();
+  updateUser(userData);
+}
 // <=========================== LOAD-POSTS ===========================> //
 const loadedPosts = new Set();
 
 async function loadPosts() {
+  await getUserData();
+
   const response = await fetch(`/api/feed?page=${currentPage}`);
   const postHtmlList = await response.json();
   if (postHtmlList.length > 0) {
@@ -104,36 +137,6 @@ window.addEventListener("scroll", () => {
   }
 });
 
-// <=========================== REFRESH ===========================> //
-
-function checkLoggedIn() {
-  const storedSession = localStorage.getItem("sessionData");
-  if (storedSession) {
-    return JSON.parse(storedSession);
-  }
-  return null; // User is not logged in
-}
-
-async function getUserData() {
-  const userInfo = checkLoggedIn();
-  if (!userInfo) {
-    return;
-  }
-  const response = await fetch("/user", {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${userInfo.userId}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to retrieve user data");
-  }
-
-  const userData = await response.json();
-  updateUser(userData);
-}
 // <=========================== LOGIN MODAL ===========================> //
 
 const openModalLG = function (e) {
@@ -331,8 +334,25 @@ feedContainer.addEventListener("click", async function (e) {
   if (e.target.classList.contains("uil-heart")) {
     const targetPost = e.target.closest(".feed");
     const postId = targetPost.getAttribute("id");
-    const likedBy = targetPost.querySelector(".liked-by p");
-    fetch("/like", {
+    if(!e.target.classList.contains('btn-active')){
+
+      fetch("/like", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ postId }),
+      })
+        .then((response) => response.json())
+        .then((postHtml) => {
+          if (!postHtml) {
+            return;
+          }
+          targetPost.outerHTML = postHtml;
+        })
+        
+  }else{
+    fetch("/unlike", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -340,13 +360,14 @@ feedContainer.addEventListener("click", async function (e) {
       body: JSON.stringify({ postId }),
     })
       .then((response) => response.json())
-      .then((post) => {
-        if (!post) {
+      .then((postHtml) => {
+        if (!postHtml) {
           return;
         }
-        likedBy.textContent = `Liked by ${post.likes.length} people`;
-        e.target.classList.add("btn-active");
+        console.log(postHtml, '!@#!@#!@#!@#');
+        targetPost.outerHTML = postHtml;
       });
+    }
   }
 });
 

@@ -86,11 +86,19 @@ app.get("/api/feed", async (req, res) => {
   const posts = await Post.find()
     .sort({ createdAt: -1 })
     .skip((page - 1) * PAGE_SIZE)
-    .limit(PAGE_SIZE);
-  const uniquePosts = posts;
-  const postHtmlList = uniquePosts.map((post) => {
+    .limit(PAGE_SIZE).populate('likes').exec();
+
+  const postHtmlList = posts.map((post) => {
+    let liked = isContainUser(post.likes, currentUser)? 'btn-active' : '';
+    // for (let userLiked of post.likes){
+    //   if(userLiked.userID == currentUser.userID){
+    //     liked = 'btn-active';
+    //     break;
+    //   }
+    // }
+    const html = post.generateHtml(liked);
     loadedPosts.add(post.id);
-    return { html: post.generateHtml(), id: post.id };
+    return { html: html, id: post.id };
   });
   res.json(postHtmlList);
 });
@@ -139,13 +147,36 @@ app.post("/Post", upload.single("postImage"), async (req, res) => {
 
 app.post("/like", async (req, res) => {
   const { postId } = req.body;
-  const post = await Post.findOne({ id: postId }).exec();
+  const post = await Post.findOne({ id: postId }).populate('likes').exec();
   if (post.likes.includes(currentUser._id, 0)) {
     res.json(null);
   }
+  else{
   post.likes.push(currentUser);
   await post.save();
-  res.json(post);
+  const html = post.generateHtml('btn-active');
+  res.json(html);
+}
+})
+app.post("/unlike", async (req, res) => {
+  const { postId } = req.body;
+  const post = await Post.findOne({ id: postId }).populate('likes').exec();
+  if (isContainUser(post.likes, currentUser)) {
+    // const indexToRemove = post.likes.indexOf(currentUser);
+    const indexToRemove = post.likes.findIndex(user => user.userID == currentUser.userID);
+    console.log(indexToRemove, '****************************************');
+    if (indexToRemove !== -1) {
+      console.log(post.likes.length);
+      post.likes.splice(indexToRemove, 1);
+      console.log(post.likes.length, '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+    }
+    await post.save();
+    const html = post.generateHtml();
+    res.json(html);
+  }
+  else{
+    res.json(null);
+}
 });
 // 404
 app.all("*", (req, res) => {
@@ -159,6 +190,16 @@ mongoose.connection.once("open", () => {
   });
 });
 
+
+//Helper functions
+function isContainUser(userList, user){
+  for (let u of userList){
+    if(u.userID == user.userID){
+      return true;
+    }
+  }
+  return false;
+}
 // Route handlers
 // ---------------------------------------------------------------
 export function generateKey() {

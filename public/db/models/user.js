@@ -35,11 +35,7 @@ export async function createUser(
     img: img,
   });
   await user
-    .save()
-    .then((newUser) => {
-      console.log("user created: ", user);
-    })
-    .catch((err) => console.error("Error creating user:", err));
+    .save().catch((err) => console.error("Error creating user:", err));
 }
 
 export async function findUser(email, password) {

@@ -21,13 +21,13 @@ const postSchema = new mongoose.Schema({
   },
   id: String,
 });
-postSchema.methods.generateHtml = function () {
+postSchema.methods.generateHtml = function (likeActive = '') {
   let likeByHtml;
   if (this.likes.length > 2) {
     likeByHtml = `
-            <span><img src=${this.likes[0]?.photo} ></span>
-            <span><img src=${this.likes[1]?.photo} ></span>
-            <span><img src=${this.likes[2]?.photo} </span>
+            <span><img src=${this.likes[0]?.img} ></span>
+            <span><img src=${this.likes[1]?.img} ></span>
+            <span><img src=${this.likes[2]?.img} ></span>
             <p>Liked by ${this.likes.length - 1} people</p>`;
   } else {
     likeByHtml = `<p>Liked by </b> ${this.likes.length} people</p>`;
@@ -56,7 +56,7 @@ postSchema.methods.generateHtml = function () {
         </div>
         <div class="action-buttons">
           <div class="interaction-buttons">
-            <span><i class="uil uil-heart" data-item-id=${this.id}></i></span>
+            <span><i class="uil uil-heart ${likeActive}" data-item-id=${this.id}></i></span>
             <span><i class="uil uil-comment-dots" data-item-id=${this.id}></i></span>
             <span><i class="uil uil-share-alt" data-item-id=${this.id}></i></span>
           </div>
@@ -95,7 +95,6 @@ export async function createPost(currentUser, postBody, postImg) {
   });
   try {
     const newPost = await post.save();
-    console.log("post created: ", newPost);
     return newPost;
   } catch (err) {
     console.error("Error Posting:", err);
