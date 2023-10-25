@@ -79,8 +79,7 @@ app.get("^/$|/index(.html)?", (req, res) => {
 app.get("/community(.html)?", (req, res) => {
   res.sendFile(join(currentDir, "views", "community.html"));
 });
-//.filter((post) => !loadedPosts.has(post.id));
-const loadedPosts = new Set();
+
 app.get("/api/feed", async (req, res) => {
   const page = req.query.page || 1;
   const posts = await Post.find()
@@ -90,14 +89,21 @@ app.get("/api/feed", async (req, res) => {
 
   const postHtmlList = posts.map((post) => {
     let liked = isContainUser(post.likes, currentUser)? 'btn-active' : '';
-    // for (let userLiked of post.likes){
-    //   if(userLiked.userID == currentUser.userID){
-    //     liked = 'btn-active';
-    //     break;
-    //   }
-    // }
     const html = post.generateHtml(liked);
-    loadedPosts.add(post.id);
+    return { html: html, id: post.id };
+  });
+  res.json(postHtmlList);
+});
+app.get("/api/myPosts", async (req, res) => {
+  const page = req.query.page || 1;
+  const posts = await Post.find({user: currentUser})
+    .sort({ createdAt: -1 })
+    .skip((page - 1) * PAGE_SIZE)
+    .limit(PAGE_SIZE).populate('likes').exec();
+  console.log(posts, '@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+  const postHtmlList = posts.map((post) => {
+    let liked = isContainUser(post.likes, currentUser)? 'btn-active' : '';
+    const html = post.generateHtml(liked);
     return { html: html, id: post.id };
   });
   res.json(postHtmlList);
@@ -164,11 +170,9 @@ app.post("/unlike", async (req, res) => {
   if (isContainUser(post.likes, currentUser)) {
     // const indexToRemove = post.likes.indexOf(currentUser);
     const indexToRemove = post.likes.findIndex(user => user.userID == currentUser.userID);
-    console.log(indexToRemove, '****************************************');
     if (indexToRemove !== -1) {
       console.log(post.likes.length);
       post.likes.splice(indexToRemove, 1);
-      console.log(post.likes.length, '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
     }
     await post.save();
     const html = post.generateHtml();

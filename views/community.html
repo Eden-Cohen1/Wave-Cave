@@ -19,6 +19,7 @@
   </head>
   <body>
     <!-- <div class="overlay"> -->
+  <div class="overlay">
     <div class="nav-bar">
       <nav>
         <div class="container">
@@ -70,9 +71,9 @@
             <span><i class="uil uil-home"></i></span>
             <h3>Feed</h3>
           </a>
-          <a class="menu-item" id="explore">
+          <a class="menu-item" id="my-profile">
             <span><i class="uil uil-compass"></i></span>
-            <h3>Explore</h3>
+            <h3>My Posts</h3>
           </a>
           <a class="menu-item" id="news">
             <span><i class="uil uil-newspaper"></i></span>
@@ -134,6 +135,11 @@
                 </p>
                 <a href="#" class="btn btn-primary">Read more</a>
               </div>
+            </div>
+          </div>
+        </div>
+        <div class="my-profile hidden">
+            <div class="user-posts">
             </div>
           </div>
         </div>
@@ -501,25 +507,27 @@
               <div class="d-flex flex-column flex-sm-row w-100 gap-3 col-sm-12">
                 <label for="newsletter1" class="visually-hidden"
                   >Email address</label
-                >
-                <input
+                  >
+                  <input
                   id="newsletter1"
                   type="text"
                   class="form-control col-md-12"
                   placeholder="Email address"
-                />
-                <button class="btn btn-primary" type="button">Subscribe</button>
-              </div>
+                  />
+                  <button class="btn btn-primary" type="button">Subscribe</button>
+                </div>
             </form>
           </div>
         </div>
-
+        
         <div
-          class="d-flex flex-column flex-sm-row justify-content-between py-4 my-4 border-top"
+        class="d-flex flex-column flex-sm-row justify-content-between py-4 my-4 border-top"
         >
-          <p>© 2023 Eden Cohen</p>
+        <p>© 2023 Eden Cohen</p>
         </div>
       </footer>
     </div>
+  </div>
   </body>
-</html>
+  </html>
+  

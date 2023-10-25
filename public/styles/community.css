@@ -41,24 +41,16 @@ h1 {
     opacity: 1;
   }
 }
-/* body {
-  padding: 20%;
-  overflow-x: hidden;
-  z-index: 99;
-  background-color: var(--bg-color);
-  background-image: url("../images/wavedraw.png");
-  background-size: 50%;
-  background-repeat: no-repeat;
-  background-position-x: -20rem;
-  background-position-y: 20rem;
-  overflow-y: hidden;
-} */
 
 body {
   height: 100%;
   margin-top: 0px;
   margin-left: 0px;
   margin-right: 0px;
+  /* background-image: url("../images/wavy-bg.jpg");
+  background-size: 100%;
+  background-position: bottom center;
+  background-repeat: no-repeat; */
   overflow-x: hidden;
   /* overflow-y: hidden; */
   background-color: var(--bg-color);
@@ -69,9 +61,9 @@ body {
 }
 /* .overlay {
   position: fixed;
-  height: auto;
-  width: 100vw;
-  background: linear-gradient(rgba(22, 22, 22, 0.849), var(--bg-color));
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(rgba(22, 22, 22, 0.95), var(--bg-color));
   top: 0px;
   left: 0px;
   z-index: 1000;
@@ -134,12 +126,14 @@ nav li {
   align-items: center;
   gap: 2rem;
 }
+
 .profile-photo {
   width: 2.8rem;
   aspect-ratio: 1/1;
   border-radius: 50%;
   overflow: hidden;
 }
+
 .btn-primary {
   border-radius: var(--border-radius);
   width: 8rem;
@@ -445,7 +439,10 @@ a.menu-item {
     margin-right: 400rem;
   }
 }
-
+/* <!-- =========================== MY-PROFILE =========================== --> */
+.user-posts{
+  margin-top: 3rem;
+}
 /* <!-- =========================== FEEDS =========================== --> */
 
 .feeds {
@@ -453,7 +450,7 @@ a.menu-item {
   margin-top: 3rem;
   max-width: 55vw;
 }
-.mid .feeds .feed {
+.feed {
   background-color: var(--lighter-bg-color);
   border-radius: var(--card-border-radius);
   padding: var(--card-padding);

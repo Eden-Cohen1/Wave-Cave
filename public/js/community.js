@@ -5,6 +5,7 @@ const signupForm = document.querySelector(".signup__form");
 const loginForm = document.querySelector(".login__form");
 const sidebarNews = document.querySelector("#news");
 const sidebarFeed = document.querySelector("#feed");
+const sidebarProfile = document.querySelector("#my-profile")
 const btnLogo = document.querySelector(".logo-img");
 const btnSignup = document.querySelector(".signup");
 const btnLogin = document.querySelector(".login");
@@ -21,11 +22,14 @@ const modalOverlay = document.querySelector(".overlay-modal");
 const article = document.querySelector(".card");
 const articleContainer = document.querySelector(".articles");
 const feedContainer = document.querySelector(".feeds");
+const myPostsContainer = document.querySelector('.user-posts')
 const newsContainer = document.querySelector(".news");
+const profileContainer = document.querySelector(".my-profile")
 const previewContainer = document.querySelector(".img-preview");
 const menuItems = document.querySelectorAll(".menu-item");
 
 let currentPage = 1;
+let myPostCurrentPage = 1;
 let formComment = document.querySelector(".comment-input");
 let btnsLike = document.querySelector(".uil-heart");
 let btnsComment = document.querySelectorAll(".uil-comment-dots");
@@ -52,6 +56,7 @@ btnLogo.addEventListener("click", () => {
 
 function checkLoggedIn() {
   const storedSession = localStorage.getItem("sessionData");
+  console.log(storedSession);
   if (storedSession) {
     return JSON.parse(storedSession);
   }
@@ -98,37 +103,10 @@ async function loadPosts() {
     currentPage++;
   }
 }
-// async function loadPosts() {
-//   const response = await fetch(`/api/feed?page=${currentPage}`);
-//   const postHtmlList = await response.json();
-//   if (postHtmlList.length > 0) {
-//     postHtmlList.forEach((post) => {
-//       feedContainer.insertAdjacentHTML("beforeend", post.html);
-//       const postElement = document.querySelector(`#${post.id}`);
-//       const likeBtn = postElement.querySelector(".uil-heart");
-//       likeBtn.addEventListener("click", async function (e) {
-//         e.preventDefault();
-//         console.log(likeBtn, "clicked");
-//         const postId = likeBtn.dataset.itemId;
-//         fetch("/like", {
-//           method: "POST",
-//           headers: {
-//             "Content-Type": "application/json",
-//           },
-//           body: JSON.stringify({ postId }),
-//         })
-//           .then((response) => response.json())
-//           .then((post) => {
-//             const likeText = postElement.querySelector(".liked-by p");
-//             likeText.textContent = `Liked by ${post.likes.length} people`;
-//             likeBtn.classList.add("btn-active");
-//           });
-//       });
-//       currentPage++;
-//     });
-//   }
-// }
 window.addEventListener("scroll", () => {
+  if(sidebarFeed.classList.contains('hidden')){
+    return;
+  }
   if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
     loadPosts();
     btnsLike = document.querySelectorAll(".uil-heart");
@@ -137,6 +115,36 @@ window.addEventListener("scroll", () => {
   }
 });
 
+// <=========================== LOAD-MY-POSTS ===========================> //
+const myLoadedPosts = new Set();
+async function loadMyPosts() {
+  await getUserData();
+
+  const response = await fetch(`/api/myPosts?page=${myPostCurrentPage}`);
+  const postHtmlList = await response.json();
+  if (postHtmlList.length > 0) {
+    const uniquePosts = postHtmlList.filter(
+      (post) => !myLoadedPosts.has(post.id)
+    );
+    uniquePosts.forEach((post) => {
+      myPostsContainer.insertAdjacentHTML("beforeend", post.html);
+      myLoadedPosts.add(post.id);
+    });
+
+    myPostCurrentPage++;
+  }
+}
+window.addEventListener("scroll", () => {
+  if(sidebarProfile.classList.contains('hidden')){
+    return;
+  }
+  if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+    loadPosts();
+    btnsLike = document.querySelectorAll(".uil-heart");
+    btnsComment = document.querySelectorAll(".uil-comment-dots");
+    btnsShare = document.querySelectorAll(".uil-share-alt");
+  }
+});
 // <=========================== LOGIN MODAL ===========================> //
 
 const openModalLG = function (e) {
@@ -268,15 +276,26 @@ menuItems.forEach((item) => {
   });
 });
 
-sidebarNews.addEventListener("click", function () {
-  newsContainer.classList.remove("hidden");
-  feedContainer.classList.add("hidden");
-  postForm.classList.add("hidden");
-});
 sidebarFeed.addEventListener("click", function () {
   newsContainer.classList.add("hidden");
+  profileContainer.classList.add("hidden");
   feedContainer.classList.remove("hidden");
   postForm.classList.remove("hidden");
+});
+
+sidebarProfile.addEventListener("click", function(){
+  profileContainer.classList.remove("hidden");
+  feedContainer.classList.add("hidden");
+  newsContainer.classList.add("hidden");
+  loadMyPosts();
+
+})
+
+sidebarNews.addEventListener("click", function () {
+  newsContainer.classList.remove("hidden");
+  profileContainer.classList.add("hidden");
+  feedContainer.classList.add("hidden");
+  postForm.classList.add("hidden");
 });
 
 //-----------------------------------------------------------------------
@@ -329,6 +348,7 @@ postForm.addEventListener("submit", function (e) {
 
 // <=========================== LIKE/COMMENT/SHARE ===========================> //
 
+//LIKE
 feedContainer.addEventListener("click", async function (e) {
   e.preventDefault();
   if (e.target.classList.contains("uil-heart")) {
@@ -371,36 +391,3 @@ feedContainer.addEventListener("click", async function (e) {
   }
 });
 
-// const postId = btn.closest(".feed");
-// btnsLike?.forEach(
-//   btn
-//     .addEventListener("click", function (e) {
-//       e.preventDefault();
-//       const postId = btn.dataset.itemId;
-//       fetch("/like", {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//         body: JSON.stringify({ postId }),
-//       });
-//     })
-//     .then((response) => response.json())
-//     .then((post) => {
-//       const parentElement = btn.closest();
-//       const likeText = parentElement.querySelector(".liked-by p");
-//       likeText.textContent = `Liked by ${post.likes.length} people`;
-//       btn.classList.add("btn-active");
-//     })
-// );
-
-// btnsComment.forEach((btn) =>
-//   btn?.addEventListener("click", function (e) {
-//     e.preventDefault();
-//     const formID = btn.dataset.itemId;
-//     const form = document.querySelector(`#${formID}`);
-//     form.classList.contains("hidden")
-//       ? form.classList.remove("hidden")
-//       : form.classList.add("hidden");
-//   })
-// );
