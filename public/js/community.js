@@ -5,7 +5,7 @@ const signupForm = document.querySelector(".signup__form");
 const loginForm = document.querySelector(".login__form");
 const sidebarNews = document.querySelector("#news");
 const sidebarFeed = document.querySelector("#feed");
-const sidebarProfile = document.querySelector("#my-profile")
+const sidebarProfile = document.querySelector("#my-profile");
 const btnLogo = document.querySelector(".logo-img");
 const btnSignup = document.querySelector(".signup");
 const btnLogin = document.querySelector(".login");
@@ -22,9 +22,9 @@ const modalOverlay = document.querySelector(".overlay-modal");
 const article = document.querySelector(".card");
 const articleContainer = document.querySelector(".articles");
 const feedContainer = document.querySelector(".feeds");
-const myPostsContainer = document.querySelector('.user-posts')
+const myPostsContainer = document.querySelector(".user-posts");
 const newsContainer = document.querySelector(".news");
-const profileContainer = document.querySelector(".my-profile")
+const profileContainer = document.querySelector(".my-profile");
 const previewContainer = document.querySelector(".img-preview");
 const menuItems = document.querySelectorAll(".menu-item");
 
@@ -50,7 +50,6 @@ const users = [];
 btnLogo.addEventListener("click", () => {
   window.location.href = "/";
 });
-
 
 // <=========================== REFRESH ===========================> //
 
@@ -104,7 +103,7 @@ async function loadPosts() {
   }
 }
 window.addEventListener("scroll", () => {
-  if(sidebarFeed.classList.contains('hidden')){
+  if (sidebarFeed.classList.contains("hidden")) {
     return;
   }
   if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
@@ -135,7 +134,7 @@ async function loadMyPosts() {
   }
 }
 window.addEventListener("scroll", () => {
-  if(sidebarProfile.classList.contains('hidden')){
+  if (sidebarProfile.classList.contains("hidden")) {
     return;
   }
   if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
@@ -283,13 +282,13 @@ sidebarFeed.addEventListener("click", function () {
   postForm.classList.remove("hidden");
 });
 
-sidebarProfile.addEventListener("click", function(){
+sidebarProfile.addEventListener("click", function () {
   profileContainer.classList.remove("hidden");
   feedContainer.classList.add("hidden");
   newsContainer.classList.add("hidden");
-  loadMyPosts();
 
-})
+  loadMyPosts();
+});
 
 sidebarNews.addEventListener("click", function () {
   newsContainer.classList.remove("hidden");
@@ -328,10 +327,10 @@ postForm.addEventListener("submit", function (e) {
   previewContainer.classList.add("hidden");
 
   const text = document.querySelector("#create-post");
-  const postBody = text.value;
   const imgName = inputImg.files[0] ? inputImg.files[0].name : "";
   const formData = new FormData(e.target);
   formData.append("imgName", imgName);
+  console.log(formData);
   text.value = "";
 
   fetch("/Post", {
@@ -348,31 +347,10 @@ postForm.addEventListener("submit", function (e) {
 
 // <=========================== LIKE/COMMENT/SHARE ===========================> //
 
-//LIKE
-feedContainer.addEventListener("click", async function (e) {
-  e.preventDefault();
-  if (e.target.classList.contains("uil-heart")) {
-    const targetPost = e.target.closest(".feed");
-    const postId = targetPost.getAttribute("id");
-    if(!e.target.classList.contains('btn-active')){
-
-      fetch("/like", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ postId }),
-      })
-        .then((response) => response.json())
-        .then((postHtml) => {
-          if (!postHtml) {
-            return;
-          }
-          targetPost.outerHTML = postHtml;
-        })
-        
-  }else{
-    fetch("/unlike", {
+function likePost(likeBtn, targetPost) {
+  const postId = targetPost.getAttribute("id");
+  if (!likeBtn.classList.contains("btn-active")) {
+    fetch("/like", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -384,10 +362,125 @@ feedContainer.addEventListener("click", async function (e) {
         if (!postHtml) {
           return;
         }
-        console.log(postHtml, '!@#!@#!@#!@#');
         targetPost.outerHTML = postHtml;
       });
+  }
+}
+function unlikePost(postId, targetPost) {
+  fetch("/unlike", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ postId }),
+  })
+    .then((response) => response.json())
+    .then((postHtml) => {
+      if (!postHtml) {
+        return;
+      }
+      targetPost.outerHTML = postHtml;
+    });
+}
+
+function commentPost(commentBtn) {
+  const post = commentBtn.closest(".feed");
+  const postID = post.getAttribute("id");
+  const input = post.querySelector('input[type="text"]');
+  const formData = { text: input.value, postId: postID };
+  fetch("/comment", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(formData),
+  })
+    .then((response) => response.json())
+    .then((html) => {
+      post.outerHTML = html;
+    });
+}
+
+// function openCommentSection();
+//LIKE
+feedContainer.addEventListener("click", async function (e) {
+  e.preventDefault();
+  if (e.target.classList.contains("uil-heart")) {
+    const targetPost = e.target.closest(".feed");
+    const postId = targetPost.getAttribute("id");
+    if (!e.target.classList.contains("btn-active")) {
+      likePost(e.target, targetPost);
+    } else {
+      unlikePost(postId, targetPost);
     }
+  }
+  //COMMENTS
+  if (e.target.classList.contains("uil-comment-dots")) {
+    const post = e.target.closest(".feed");
+    const commentInput = post.querySelector(".comment-input");
+    commentInput.classList.remove("hidden");
+  }
+  if (e.target.classList.contains("post-click")) {
+    commentPost(e.target);
+  }
+  if (e.target.classList.contains("view-comments")) {
+    const post = e.target.closest(".feed");
+    const commentSection = post.querySelector(".comments");
+    commentSection.classList.remove("hidden");
+    e.target.classList.add("hidden");
   }
 });
 
+//COMMENT
+// feedContainer.addEventListener("click", async function (e) {
+//   e.preventDefault();
+//   const input = e.target.querySelector('input[type="text"]');
+//   if (e.target.classList.contains("uil-comment-dots")) {
+//     const commentInput = document.querySelector(".comment-input");
+//     commentInput.classList.remove("hidden");
+//   }
+//   if (e.target.classList.contains("post-click")) {
+//     const post = e.target.closest(".feed");
+//     const postID = post.getAttribute("id");
+//     console.log(input, postID);
+//     const formData = { text: input.value, postid: postID };
+//     fetch("/comment", {
+//       method: "POST",
+//       body: formData,
+//     })
+//       .then((response) => response.json())
+//       .then((html) => {
+//         feedContainer.insertAdjacentHTML("afterbegin", html);
+//       });
+//   }
+// });
+//COMMENTS LENGTH
+
+const readMorePrefaceMaxLength = 120;
+const readMoreTexts = document.querySelectorAll(".read-more-text");
+readMoreTexts.forEach((readMoreText) => {
+  const extra = SliceHTML.sliceHTML(readMoreText, readMorePrefaceMaxLength);
+  console.log(extra);
+  if (extra.textContent.length === 0) {
+    return;
+  }
+  const preface = SliceHTML.sliceHTML(
+    readMoreText,
+    0,
+    readMorePrefaceMaxLength
+  );
+  readMoreText.innerHTML = "";
+  readMoreText.append(preface);
+  const extraSpan = document.createElement("span");
+  extraSpan.hidden = true;
+  extraSpan.append(extra);
+  const button = document.createElement("a");
+  button.classList.add("read-more-button");
+  button.textContent = "... read more";
+  button.addEventListener("click", () => {
+    button.hidden = true;
+    extraSpan.hidden = false;
+  });
+  readMoreText.append(button);
+  readMoreText.append(extraSpan);
+});

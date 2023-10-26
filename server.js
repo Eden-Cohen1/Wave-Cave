@@ -18,6 +18,7 @@ import {
   findUserById,
 } from "./public/db/models/user.js";
 import { Post, createPost } from "./public/db/models/post.js";
+import { createComment } from "./public/db/models/comment.js";
 const PAGE_SIZE = 5;
 config();
 connectDB();
@@ -85,10 +86,21 @@ app.get("/api/feed", async (req, res) => {
   const posts = await Post.find()
     .sort({ createdAt: -1 })
     .skip((page - 1) * PAGE_SIZE)
-    .limit(PAGE_SIZE).populate('likes').exec();
+    .limit(PAGE_SIZE)
+    .populate([
+      { path: "likes", model: "User" },
+      {
+        path: "comments",
+        model: "Comment",
+        populate: { path: "user", model: "User" },
+      },
+    ])
+    .exec();
+  console.log(posts, "#$#$#$#$#$#$#$#$$#");
 
   const postHtmlList = posts.map((post) => {
-    let liked = isContainUser(post.likes, currentUser)? 'btn-active' : '';
+    console.log(post, "%%%% FEED %%%%");
+    let liked = isContainUser(post.likes, currentUser) ? "btn-active" : "";
     const html = post.generateHtml(liked);
     return { html: html, id: post.id };
   });
@@ -96,13 +108,21 @@ app.get("/api/feed", async (req, res) => {
 });
 app.get("/api/myPosts", async (req, res) => {
   const page = req.query.page || 1;
-  const posts = await Post.find({user: currentUser})
+  const posts = await Post.find({ user: currentUser })
     .sort({ createdAt: -1 })
     .skip((page - 1) * PAGE_SIZE)
-    .limit(PAGE_SIZE).populate('likes').exec();
-  console.log(posts, '@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+    .limit(PAGE_SIZE)
+    .populate([
+      { path: "likes", model: "User" },
+      {
+        path: "comments",
+        model: "Comment",
+        populate: { path: "user", model: "User" },
+      },
+    ])
+    .exec();
   const postHtmlList = posts.map((post) => {
-    let liked = isContainUser(post.likes, currentUser)? 'btn-active' : '';
+    let liked = isContainUser(post.likes, currentUser) ? "btn-active" : "";
     const html = post.generateHtml(liked);
     return { html: html, id: post.id };
   });
@@ -150,37 +170,81 @@ app.post("/Post", upload.single("postImage"), async (req, res) => {
   const html = post.generateHtml();
   res.json(html);
 });
-
+app.post("/comment", async (req, res) => {
+  const { text, postId } = req.body;
+  const comment = await createComment(text, currentUser);
+  console.log(comment, "@@@comment@@@");
+  const post = await Post.findOne({ id: postId })
+    .populate([
+      { path: "likes", model: "User" },
+      {
+        path: "comments",
+        model: "Comment",
+        populate: { path: "user", model: "User" },
+      },
+    ])
+    .exec();
+  post.comments.push(comment._id);
+  console.log(post, "@@@post@@@");
+  await post.populate([
+    { path: "likes", model: "User" },
+    {
+      path: "comments",
+      model: "Comment",
+      populate: { path: "user", model: "User" },
+    },
+  ]);
+  await post.save();
+  const html = post.generateHtml();
+  res.json(html);
+});
 app.post("/like", async (req, res) => {
   const { postId } = req.body;
-  const post = await Post.findOne({ id: postId }).populate('likes').exec();
+  const post = await Post.findOne({ id: postId })
+    .populate([
+      { path: "likes", model: "User" },
+      {
+        path: "comments",
+        model: "Comment",
+        populate: { path: "user", model: "User" },
+      },
+    ])
+    .exec();
   if (post.likes.includes(currentUser._id, 0)) {
     res.json(null);
+  } else {
+    post.likes.push(currentUser._id);
+    await post.save();
+    const html = post.generateHtml("btn-active");
+    res.json(html);
   }
-  else{
-  post.likes.push(currentUser);
-  await post.save();
-  const html = post.generateHtml('btn-active');
-  res.json(html);
-}
-})
+});
 app.post("/unlike", async (req, res) => {
   const { postId } = req.body;
-  const post = await Post.findOne({ id: postId }).populate('likes').exec();
+  const post = await Post.findOne({ id: postId })
+    .populate([
+      { path: "likes", model: "User" },
+      {
+        path: "comments",
+        model: "Comment",
+        populate: { path: "user", model: "User" },
+      },
+    ])
+    .exec();
   if (isContainUser(post.likes, currentUser)) {
     // const indexToRemove = post.likes.indexOf(currentUser);
-    const indexToRemove = post.likes.findIndex(user => user.userID == currentUser.userID);
+    const indexToRemove = post.likes.findIndex(
+      (user) => user.userID == currentUser.userID
+    );
     if (indexToRemove !== -1) {
-      console.log(post.likes.length);
       post.likes.splice(indexToRemove, 1);
     }
     await post.save();
     const html = post.generateHtml();
     res.json(html);
-  }
-  else{
+  } else {
     res.json(null);
-}
+  }
 });
 // 404
 app.all("*", (req, res) => {
@@ -194,15 +258,25 @@ mongoose.connection.once("open", () => {
   });
 });
 
-
 //Helper functions
-function isContainUser(userList, user){
-  for (let u of userList){
-    if(u.userID == user.userID){
+function isContainUser(userList, user) {
+  for (let u of userList) {
+    if (u.userID == user.userID) {
       return true;
     }
   }
   return false;
+}
+async function populatePosts() {
+  const posts = await Post.find();
+  await Post.populate([
+    { path: "likes", model: "User" },
+    {
+      path: "comments",
+      model: "Comment",
+      populate: { path: "user", model: "User" },
+    },
+  ]);
 }
 // Route handlers
 // ---------------------------------------------------------------

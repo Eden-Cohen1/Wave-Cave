@@ -440,7 +440,7 @@ a.menu-item {
   }
 }
 /* <!-- =========================== MY-PROFILE =========================== --> */
-.user-posts{
+.user-posts {
   margin-top: 3rem;
 }
 /* <!-- =========================== FEEDS =========================== --> */
@@ -518,7 +518,70 @@ i.uil-share-alt:hover {
   cursor: pointer;
 }
 
-/* <!-- MEDIA QUERIES FOR SMALL LAPTOPS AND BIG TABLETS --> */
+/* <!-- =========================== COMMENTS =========================== --> */
+
+.comments {
+  margin-left: 2rem;
+}
+.comment {
+  background-color: var(--lighter-bg-color);
+  display: flex;
+  align-items: center;
+  left: 0;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-top: solid;
+  border-color: rgba(255, 255, 255, 0.466);
+  border-width: 0.1rem;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+.comment .profile-photo {
+  width: 3rem;
+}
+.comments .comment-section {
+  margin-top: 1rem;
+  margin-bottom: 0;
+  font-weight: 600;
+}
+.comment-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  border-radius: var(--card-border-radius);
+  border: solid;
+  background-color: var(--bg-color);
+  border-width: 0.1rem;
+  padding: 0.5rem;
+}
+
+.comment .read-more {
+  display: none;
+  color: blue;
+  cursor: pointer;
+}
+.comment h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  overflow: hidden;
+}
+.read-more-button {
+  cursor: pointer;
+  margin-left: 0.2rem;
+  font-weight: 500;
+}
+.view-comments {
+  cursor: pointer;
+}
+.comment-time {
+  flex: 0 0 100%;
+  margin-left: 4rem;
+  font-weight: 500;
+}
+.user-info img {
+}
+
+/* <!-- ==== MEDIA QUERIES FOR SMALL LAPTOPS AND BIG TABLETS ==== --> */
 @media screen and (max-width: 1200px) {
   .container {
     width: 96%;

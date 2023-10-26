@@ -1,6 +1,7 @@
 "use strict";
 import mongoose from "mongoose";
 import { User } from "./user.js";
+import { Comment } from "./comment.js";
 import { generateKey } from "../../../server.js";
 const postSchema = new mongoose.Schema({
   user: Object,
@@ -14,15 +15,19 @@ const postSchema = new mongoose.Schema({
     default: "",
   },
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-  comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
   createdAt: {
     type: Date,
     default: Date.now,
   },
   id: String,
 });
-postSchema.methods.generateHtml = function (likeActive = '') {
+postSchema.methods.generateHtml = function (likeActive = "") {
   let likeByHtml;
+  let commentsHtml = "";
+  this.comments.forEach((comment) => {
+    commentsHtml += generateCommentHtml(comment);
+  });
   if (this.likes.length > 2) {
     likeByHtml = `
             <span><img src=${this.likes[0]?.img} ></span>
@@ -64,16 +69,21 @@ postSchema.methods.generateHtml = function (likeActive = '') {
         <div class="liked-by">
             ${likeByHtml}
         </div>
+        <div class="comments hidden">
+            <p class="comment-section">COMMENT SECTION ( ${this.comments.length} )</p>
+            ${commentsHtml}
+        </div>
         <div class="comment-input hidden" id=${this.id}>
         <form class="container post-comment">
           <div class="profile-photo">
             <img src="./images/userImg/me.jpg" alt="profile-photo">
           </div>
             <input type="text" placeholder="Leave a comment" id="post-comment">
-            <input type="submit" value="Comment" class="post">
+            <input type="submit" value="Comment" class="post post-click">
           </form>
     </div>
-        <div class="comments text-muted">View all ${this.comments.length} comments</div>
+        <div class="text-muted"><a class="view-comments ">View all ${this.comments.length} comments</a></div>
+
       </div>`;
   return html;
 };
@@ -94,10 +104,28 @@ export async function createPost(currentUser, postBody, postImg) {
     time: new Date().toLocaleString(),
   });
   try {
-    const newPost = await post.save();
-    return newPost;
+    return await post.save();
   } catch (err) {
     console.error("Error Posting:", err);
     throw err;
   }
+}
+
+function generateCommentHtml(comment) {
+  const html = `<div class="comment">
+      <img class="profile-photo curr-user" src=${comment.user.img} alt="">
+      <div class="comment-body">
+        <h3>${comment.user.name}:</h3>
+        <p class="read-more-text">
+        ${comment.text}
+        </p>
+      </div>
+      <div class="comment-time">   
+      <p class="text-muted"> ${comment.createdAt
+        .toLocaleString()
+        .split("GMT")[0]
+        .slice(0, -3)} </p>
+        </div>
+    </div>`;
+  return html;
 }

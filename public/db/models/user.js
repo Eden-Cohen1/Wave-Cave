@@ -34,8 +34,7 @@ export async function createUser(
     userID: Math.floor(Date.now() / 100000).toString(),
     img: img,
   });
-  await user
-    .save().catch((err) => console.error("Error creating user:", err));
+  await user.save().catch((err) => console.error("Error creating user:", err));
 }
 
 export async function findUser(email, password) {
@@ -47,7 +46,7 @@ export async function findUser(email, password) {
     console.log("User not found");
     return null;
   }
-  console.log("Found user", user);
+  console.log("Found user");
   return user;
 }
 
@@ -59,6 +58,6 @@ export async function findUserById(id) {
     console.log("User not found");
     return null;
   }
-  console.log("Found user by id", user, user.userID);
+  console.log("Found user by id");
   return user;
 }
