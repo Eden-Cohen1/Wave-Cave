@@ -27,7 +27,6 @@ const newsContainer = document.querySelector(".news");
 const profileContainer = document.querySelector(".my-profile");
 const previewContainer = document.querySelector(".img-preview");
 const menuItems = document.querySelectorAll(".menu-item");
-
 let currentPage = 1;
 let myPostCurrentPage = 1;
 let formComment = document.querySelector(".comment-input");
@@ -38,14 +37,6 @@ let currPostImgSrc = "";
 let currProfileImgSrc = "";
 let currentUser;
 loadPosts();
-function addArticle(articles) {
-  for (let i = 0; i < articles; i++) {
-    articleContainer.appendChild(article.cloneNode(true));
-  }
-}
-
-addArticle(8);
-const users = [];
 
 btnLogo.addEventListener("click", () => {
   window.location.href = "/";
@@ -295,6 +286,7 @@ sidebarNews.addEventListener("click", function () {
   profileContainer.classList.add("hidden");
   feedContainer.classList.add("hidden");
   postForm.classList.add("hidden");
+  updateNews();
 });
 
 //-----------------------------------------------------------------------
@@ -383,8 +375,7 @@ function unlikePost(postId, targetPost) {
     });
 }
 
-function commentPost(commentBtn) {
-  const post = commentBtn.closest(".feed");
+function commentPost(post) {
   const postID = post.getAttribute("id");
   const input = post.querySelector('input[type="text"]');
   const formData = { text: input.value, postId: postID };
@@ -398,64 +389,93 @@ function commentPost(commentBtn) {
     .then((response) => response.json())
     .then((html) => {
       post.outerHTML = html;
+      post.querySelector(".comments").classList.remove('hidden');
+      post.querySelector('.comment-input').classList.remove('hidden');
     });
 }
 
-// function openCommentSection();
-//LIKE
+function openCommentSection(input, section){
+  input.classList.remove('hidden')
+  section.classList.remove('hidden')
+  input.querySelector('input[type="text"]').focus();
+}
+function closeCommentSection(input, section){
+  input.classList.add('hidden')
+  section.classList.add('hidden')
+}
+
 feedContainer.addEventListener("click", async function (e) {
   e.preventDefault();
+  const post = e.target.closest(".feed");
+  const commentSection = post.querySelector(".comments");
+  const commentInput = post.querySelector('.comment-input');
+
+  // LIKE //
   if (e.target.classList.contains("uil-heart")) {
-    const targetPost = e.target.closest(".feed");
-    const postId = targetPost.getAttribute("id");
+    // const targetPost = e.target.closest(".feed");
+    const postId = post.getAttribute("id");
     if (!e.target.classList.contains("btn-active")) {
-      likePost(e.target, targetPost);
+      likePost(e.target, post);
     } else {
-      unlikePost(postId, targetPost);
+      unlikePost(postId, post);
+    }
+  }
+
+  // COMMENTS //
+  if (e.target.classList.contains("uil-comment-dots")) {
+    openCommentSection(commentInput, commentSection,)
+    post.querySelector('.view-comments').classList.add('hidden');
+
+  }
+  if (e.target.classList.contains("post-click")) {
+    commentPost(post);
+  }
+  if (e.target.classList.contains("view-comments")) {
+    openCommentSection(commentInput, commentSection)
+    e.target.classList.add("hidden");
+  }
+  if(e.target.classList.contains('hide-comments')){
+    closeCommentSection(commentInput, commentSection)
+    post.querySelector('.view-comments').classList.remove('hidden');
+  }
+});
+
+// MY POSTS //
+myPostsContainer.addEventListener('click', function(e) {
+  e.preventDefault();
+  const post = e.target.closest(".feed");
+  const commentSection = post.querySelector(".comments");
+  const commentInput = post.querySelector('.comment-input');
+
+  // LIKE //
+  if (e.target.classList.contains("uil-heart")) {
+    const postId = post.getAttribute("id");
+    if (!e.target.classList.contains("btn-active")) {
+      likePost(e.target, post);
+    } else {
+      unlikePost(postId, post);
     }
   }
   //COMMENTS
   if (e.target.classList.contains("uil-comment-dots")) {
-    const post = e.target.closest(".feed");
-    const commentInput = post.querySelector(".comment-input");
-    commentInput.classList.remove("hidden");
+    openCommentSection(commentInput, commentSection,)
+    post.querySelector('.view-comments').classList.add('hidden');
+
   }
   if (e.target.classList.contains("post-click")) {
-    commentPost(e.target);
+    commentPost(post);
   }
   if (e.target.classList.contains("view-comments")) {
-    const post = e.target.closest(".feed");
-    const commentSection = post.querySelector(".comments");
-    commentSection.classList.remove("hidden");
+    openCommentSection(commentInput, commentSection,)
     e.target.classList.add("hidden");
   }
-});
+  if(e.target.classList.contains('hide-comments')){
+    closeCommentSection(commentInput, commentSection)
+    post.querySelector('.view-comments').classList.remove('hidden');
+  }
+})
 
-//COMMENT
-// feedContainer.addEventListener("click", async function (e) {
-//   e.preventDefault();
-//   const input = e.target.querySelector('input[type="text"]');
-//   if (e.target.classList.contains("uil-comment-dots")) {
-//     const commentInput = document.querySelector(".comment-input");
-//     commentInput.classList.remove("hidden");
-//   }
-//   if (e.target.classList.contains("post-click")) {
-//     const post = e.target.closest(".feed");
-//     const postID = post.getAttribute("id");
-//     console.log(input, postID);
-//     const formData = { text: input.value, postid: postID };
-//     fetch("/comment", {
-//       method: "POST",
-//       body: formData,
-//     })
-//       .then((response) => response.json())
-//       .then((html) => {
-//         feedContainer.insertAdjacentHTML("afterbegin", html);
-//       });
-//   }
-// });
-//COMMENTS LENGTH
-
+//READ-MORE (COMMENTS)
 const readMorePrefaceMaxLength = 120;
 const readMoreTexts = document.querySelectorAll(".read-more-text");
 readMoreTexts.forEach((readMoreText) => {
@@ -484,3 +504,38 @@ readMoreTexts.forEach((readMoreText) => {
   readMoreText.append(button);
   readMoreText.append(extraSpan);
 });
+
+function addArticles(articles) {
+  articles.forEach(article => {    
+    const html = `<div class="card">
+    <img
+      class="card-img-top"
+      src=${article.image}
+      alt="Card image cap"
+    />
+    <div class="card-body">
+      <h5 class="card-title"><b>${article.title}</b></h5>
+      <p class="card-text">
+        ${article.description}
+      </p>
+      <a href=${article.url} class="btn btn-primary">Read more</a>
+    </div>
+  </div>`
+  articleContainer.insertAdjacentHTML("beforeend", html)
+  })
+}
+async function updateNews(){
+  const response = await fetch("/news", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to retrieve news data");
+  }
+  const articles = await response.json();
+  addArticles(articles);
+  
+}

@@ -71,7 +71,7 @@ app.use("/uploads", express.static("uploads"));
 app.use(urlencoded({ extended: false }));
 app.use(json());
 
-//Pages, Redirect, 404.
+// <=========================== MAIN PAGES ROUTES ===========================> //
 // home
 app.get("^/$|/index(.html)?", (req, res) => {
   res.sendFile(join(currentDir, "views", "index.html"));
@@ -81,6 +81,7 @@ app.get("/community(.html)?", (req, res) => {
   res.sendFile(join(currentDir, "views", "community.html"));
 });
 
+// <=========================== FEED ===========================> //
 app.get("/api/feed", async (req, res) => {
   const page = req.query.page || 1;
   const posts = await Post.find()
@@ -96,16 +97,17 @@ app.get("/api/feed", async (req, res) => {
       },
     ])
     .exec();
-  console.log(posts, "#$#$#$#$#$#$#$#$$#");
 
   const postHtmlList = posts.map((post) => {
     console.log(post, "%%%% FEED %%%%");
-    let liked = isContainUser(post.likes, currentUser) ? "btn-active" : "";
+    let liked = isContainUser(post.likes, currentUser);
     const html = post.generateHtml(liked);
     return { html: html, id: post.id };
   });
   res.json(postHtmlList);
 });
+
+// <=========================== MY-POSTS ===========================> //
 app.get("/api/myPosts", async (req, res) => {
   const page = req.query.page || 1;
   const posts = await Post.find({ user: currentUser })
@@ -122,12 +124,13 @@ app.get("/api/myPosts", async (req, res) => {
     ])
     .exec();
   const postHtmlList = posts.map((post) => {
-    let liked = isContainUser(post.likes, currentUser) ? "btn-active" : "";
+    let liked = isContainUser(post.likes, currentUser);
     const html = post.generateHtml(liked);
     return { html: html, id: post.id };
   });
   res.json(postHtmlList);
 });
+// <=========================== RE-LOGIN (REFRESH) ===========================> //
 app.get("/user", async (req, res) => {
   try {
     const userId = req.headers.authorization.split(" ")[1];
@@ -142,7 +145,8 @@ app.get("/user", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
-//newUser form
+
+// <=========================== SIGN-UP ===========================> //
 app.post("/newUser", upload.single("image"), (req, res) => {
   const name = `${req.body.firstname} ${req.body.lastname}`;
   const { country, age, email, password } = req.body;
@@ -152,6 +156,7 @@ app.post("/newUser", upload.single("image"), (req, res) => {
   res.sendFile(join(currentDir, "views", "community.html"));
 });
 
+// <=========================== LOGIN ===========================> //
 app.post(`/login`, async (req, res) => {
   const { email, password } = req.body;
   currentUser = await findUser(email, password);
@@ -163,6 +168,7 @@ app.post(`/login`, async (req, res) => {
   res.json({ currentUser, sessionKey });
 });
 
+// <=========================== POSTING ===========================> //
 app.post("/Post", upload.single("postImage"), async (req, res) => {
   const { postBody } = req.body;
   const imgPath = req.body.imgName ? `./uploads/${req.body.imgName}` : "";
@@ -170,22 +176,22 @@ app.post("/Post", upload.single("postImage"), async (req, res) => {
   const html = post.generateHtml();
   res.json(html);
 });
+
+// <=========================== COMMENT ===========================> //
 app.post("/comment", async (req, res) => {
   const { text, postId } = req.body;
   const comment = await createComment(text, currentUser);
-  console.log(comment, "@@@comment@@@");
   const post = await Post.findOne({ id: postId })
-    .populate([
-      { path: "likes", model: "User" },
-      {
-        path: "comments",
-        model: "Comment",
-        populate: { path: "user", model: "User" },
-      },
-    ])
-    .exec();
+  .populate([
+    { path: "likes", model: "User" },
+    {
+      path: "comments",
+      model: "Comment",
+      populate: { path: "user", model: "User" },
+    },
+  ])
+  .exec();
   post.comments.push(comment._id);
-  console.log(post, "@@@post@@@");
   await post.populate([
     { path: "likes", model: "User" },
     {
@@ -195,9 +201,12 @@ app.post("/comment", async (req, res) => {
     },
   ]);
   await post.save();
-  const html = post.generateHtml();
+  const isLiked = isContainUser(post.likes, currentUser);
+  const html = post.generateHtml(isLiked, true);
   res.json(html);
 });
+
+// <=========================== LIKE ===========================> //
 app.post("/like", async (req, res) => {
   const { postId } = req.body;
   const post = await Post.findOne({ id: postId })
@@ -215,10 +224,12 @@ app.post("/like", async (req, res) => {
   } else {
     post.likes.push(currentUser._id);
     await post.save();
-    const html = post.generateHtml("btn-active");
+    const html = post.generateHtml(true);
     res.json(html);
   }
 });
+
+// <=========================== UNLIKE ===========================> //
 app.post("/unlike", async (req, res) => {
   const { postId } = req.body;
   const post = await Post.findOne({ id: postId })
@@ -246,11 +257,19 @@ app.post("/unlike", async (req, res) => {
     res.json(null);
   }
 });
-// 404
+// <=========================== NEWS ===========================> //
+app.get('/news', async(req, res) => {
+  const articles = await fetchAndProccessArticles();
+  console.log(articles, '@@@@@@@@@@@@@@@@@');
+  res.json(articles)
+})
+
+// <=========================== 404 ===========================> //
 app.all("*", (req, res) => {
   res.status(404).sendFile(join(currentDir, "views", "404.html"));
 });
 
+// <=========================== DB ===========================> //
 mongoose.connection.once("open", () => {
   console.log("connected to mongodb");
   app.listen(PORT, () => {
@@ -258,7 +277,7 @@ mongoose.connection.once("open", () => {
   });
 });
 
-//Helper functions
+// <=========================== HELPER FUNCTIONS ===========================> //
 function isContainUser(userList, user) {
   for (let u of userList) {
     if (u.userID == user.userID) {
@@ -267,37 +286,26 @@ function isContainUser(userList, user) {
   }
   return false;
 }
-async function populatePosts() {
-  const posts = await Post.find();
-  await Post.populate([
-    { path: "likes", model: "User" },
-    {
-      path: "comments",
-      model: "Comment",
-      populate: { path: "user", model: "User" },
-    },
-  ]);
-}
-// Route handlers
-// ---------------------------------------------------------------
 export function generateKey() {
   const key = crypto.randomBytes(16).toString("base64");
   const sanitizedKey = key.replace(/[^a-zA-Z0-9-]/g, "-");
   return sanitizedKey;
 }
 
-//Article Data
+// <=========================== FORECAST && ARTICLES ===========================> //
 import { fetchArticles, wrapArticles, lastAPIcall } from "./public/js/news.js";
 
 async function fetchAndProccessArticles() {
   let allArticles;
   const today = new Date().toISOString();
-  if (lastAPIcall?.split("T")[0] !== today.split("T")[0]) {
-    const articles = await fetchArticles();
-    allArticles = wrapArticles(articles);
-    // add to data-base
-  }
+  // if (lastAPIcall?.split("T")[0] !== today.split("T")[0]) {
+  //   const articles = await fetchArticles();
+  //   allArticles = wrapArticles(articles);
+  //   // add to data-base
+  // }
   // else {allArticles = take articles from data base}
+  const articles = await fetchArticles();
+  allArticles = wrapArticles(articles);
   return allArticles;
 }
 async function main() {

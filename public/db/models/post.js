@@ -22,7 +22,14 @@ const postSchema = new mongoose.Schema({
   },
   id: String,
 });
-postSchema.methods.generateHtml = function (likeActive = "") {
+postSchema.methods.generateHtml = function (likeActive=false, afterComment=false) {
+  likeActive = likeActive ? 'btn-active' : '';
+  let showCommentStatus = '';
+  let commentSectionStatus = 'hidden';
+  if(afterComment){
+    showCommentStatus = 'hidden'
+    commentSectionStatus = ''
+  }
   let likeByHtml;
   let commentsHtml = "";
   this.comments.forEach((comment) => {
@@ -69,11 +76,11 @@ postSchema.methods.generateHtml = function (likeActive = "") {
         <div class="liked-by">
             ${likeByHtml}
         </div>
-        <div class="comments hidden">
+        <div class="comments ${commentSectionStatus}">
             <p class="comment-section">COMMENT SECTION ( ${this.comments.length} )</p>
             ${commentsHtml}
         </div>
-        <div class="comment-input hidden" id=${this.id}>
+        <div class="comment-input ${commentSectionStatus}" id=${this.id}>
         <form class="container post-comment">
           <div class="profile-photo">
             <img src="./images/userImg/me.jpg" alt="profile-photo">
@@ -81,8 +88,9 @@ postSchema.methods.generateHtml = function (likeActive = "") {
             <input type="text" placeholder="Leave a comment" id="post-comment">
             <input type="submit" value="Comment" class="post post-click">
           </form>
+          <a class="hide-comments">Hide comments</a>
     </div>
-        <div class="text-muted"><a class="view-comments ">View all ${this.comments.length} comments</a></div>
+        <div class="text-muted"><a class="view-comments ${showCommentStatus}">View all ${this.comments.length} comments</a></div>
 
       </div>`;
   return html;

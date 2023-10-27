@@ -217,15 +217,35 @@ main {
   padding: 3%;
   display: grid;
   /* grid-template-columns: 1fr, 1fr 1fr; */
-  grid-template-columns: repeat(auto-fill, minmax(min(13rem, 100%), 1fr));
-  grid-gap: 3rem;
+  /* grid-template-columns: 1fr, 1fr; */
+  grid-template-columns: repeat(auto-fill, minmax(min(22rem, 100%), 1fr));
+  grid-gap: 1rem;
 }
 .card {
-  width: 16rem;
+  width: 23rem;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 5px;
+  min-height: 32rem;
+}
+.card img{
+  height: 12rem;
+  object-fit: cover;
+}
+.card a{
+  position:absolute;
+  bottom: 1.5rem;
+  left: 1rem;
+}
+.card-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* Maximum number of lines */
+  -webkit-box-orient: vertical;
+  max-width: minmax(min(23rem, 100%)); /* Adjust to your desired width */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
 }
 .create-post {
   width: 100%;
@@ -578,7 +598,9 @@ i.uil-share-alt:hover {
   margin-left: 4rem;
   font-weight: 500;
 }
-.user-info img {
+.hide-comments{
+  cursor: pointer;
+  font-weight: 500;
 }
 
 /* <!-- ==== MEDIA QUERIES FOR SMALL LAPTOPS AND BIG TABLETS ==== --> */
@@ -808,7 +830,9 @@ footer {
   background-color: #181b1b;
   font-size: 1.25rem;
 }
-
+.quick-links{
+  text-align: center !important;
+}
 footer input {
   max-width: 50%;
 }
