@@ -19,7 +19,7 @@ import {
 } from "./public/db/models/user.js";
 import { Post, createPost } from "./public/db/models/post.js";
 import { createComment } from "./public/db/models/comment.js";
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 5;
 config();
 connectDB();
 //variables
@@ -112,8 +112,7 @@ app.get("/api/my-profile", async (req, res) => {
   const page = req.query.page || 1;
   const posts = await Post.find({ "user._id": currentUser._id })
     .sort({ createdAt: -1 })
-    .skip((page - 1) * PAGE_SIZE)
-    .limit(PAGE_SIZE)
+    .limit(10)
     .populate([
       { path: "likes", model: "User" },
       {
@@ -133,12 +132,10 @@ app.get("/api/my-profile", async (req, res) => {
 });
 // <=========================== USER-PROFILE ===========================> //
 app.get("/api/profile", async (req, res) => {
-  const page = req.query.page || 1;
   const userId = req.headers.authorization.split(" ")[1];
-  const posts = await Post.find({ "user._id": userId })
+  const posts = await Post.find({ "user.userID": userId })
     .sort({ createdAt: -1 })
-    .skip((page - 1) * PAGE_SIZE)
-    .limit(PAGE_SIZE)
+    .limit(10)
     .populate([
       { path: "likes", model: "User" },
       {
@@ -149,6 +146,7 @@ app.get("/api/profile", async (req, res) => {
     ])
     .exec();
   const user = await findUserById(userId);
+  console.log(user, "@@@@@@@@@");
   const postHtmlList = posts.map((post) => {
     let liked = isContainUser(post.likes, currentUser);
     const html = post.generateHtml(liked);
@@ -163,9 +161,11 @@ app.get("/user", async (req, res) => {
     const userId = req.headers.authorization.split(" ")[1];
     const user = await findUserById(userId);
     if (!user) {
+      currentUser = null;
       return res.status(404).json({ message: "User not found" });
     }
     currentUser = user;
+    console.log(currentUser);
     res.json(user);
   } catch (error) {
     console.error("Error:", error);
@@ -197,6 +197,7 @@ app.post("/newUser", upload.single("image"), (req, res) => {
 app.post(`/login`, async (req, res) => {
   const { email, password } = req.body;
   currentUser = await findUser(email, password);
+  console.log("myyyyy LOGIN", currentUser);
   const sessionKey = generateKey();
   if (!currentUser) {
     res.json(null);
@@ -209,6 +210,7 @@ app.post(`/login`, async (req, res) => {
 app.post("/Post", upload.single("postImage"), async (req, res) => {
   const { postBody } = req.body;
   const imgPath = req.body.imgName ? `./uploads/${req.body.imgName}` : "";
+  console.log(currentUser);
   const post = await createPost(currentUser, postBody, imgPath);
   const html = post.generateHtml();
   currentUser.postCount++;

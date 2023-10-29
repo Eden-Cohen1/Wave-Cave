@@ -37,7 +37,7 @@ export async function createUser(
     handle: handle,
     password: password,
     dateJoined: new Date().toISOString().split("T")[0],
-    userID: Math.floor(Date.now() / 100000).toString(),
+    userID: Math.floor(Date.now()).toString(),
     img: img,
     friends: [],
     likeCount: 0,

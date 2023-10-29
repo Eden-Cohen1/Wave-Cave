@@ -1,6 +1,5 @@
 "use strict";
 const postForm = document.querySelector(".create-post");
-console.log(postForm);
 const createPostDiv = document.querySelector(".create-post-div");
 const signupForm = document.querySelector(".signup__form");
 const loginForm = document.querySelector(".login__form");
@@ -20,15 +19,14 @@ const btnCloseModalLG = document.querySelector(
 const signupModal = document.querySelector(".sign-up-modal");
 const loginModal = document.querySelector(".login-modal");
 const modalOverlay = document.querySelector(".overlay-modal");
-const article = document.querySelector(".card");
 const articleContainer = document.querySelector(".articles");
 const feedContainer = document.querySelector(".feeds");
-const myPostsContainer = document.querySelector(".user-posts");
 const newsContainer = document.querySelector(".news");
 const containerMid = document.querySelector(".mid");
 const profileContainer = document.querySelector(".my-profile");
 const previewContainer = document.querySelector(".img-preview");
 const menuItems = document.querySelectorAll(".menu-item");
+let profilePostContainer = document.querySelector(".user-posts");
 let currentPage = 1;
 let myPostCurrentPage = 1;
 let formComment = document.querySelector(".comment-input");
@@ -38,22 +36,7 @@ let btnsShare = document.querySelectorAll(".uil-share-alt");
 let currPostImgSrc = "";
 let currProfileImgSrc = "";
 let currentUser;
-let currUserLoadedPosts = {
-  loadedPostSet: new Set(),
-  currPage: 1,
-};
-let aUserLoadedPosts = {
-  loadedPostSet: new Set(),
-  currPage: 1,
-};
-let feedLoadedPosts = {
-  loadedPostSet: new Set(),
-  currPage: 1,
-};
-let loadedPosts = new Set();
 let currPage = 1;
-
-let currLoadedPosts = feedLoadedPosts;
 let currPath = `/api/feed?page=${currPage}`;
 let currUserid = "none";
 let isMainFeed = true;
@@ -76,6 +59,7 @@ function checkLoggedIn() {
 async function getUserData() {
   const userInfo = checkLoggedIn();
   if (!userInfo) {
+    console.log("user not logged in");
     return;
   }
   const response = await fetch("/user", {
@@ -91,16 +75,16 @@ async function getUserData() {
   }
 
   const userData = await response.json();
+  currentUser = userData;
   updateUser(userData);
 }
 // <=========================== LOAD-POSTS ===========================> //
 
+let loadedPostsSet = new Set();
 async function loadFeedPosts(path, userId, isMainFeed) {
-  await getUserData();
-  console.log(userId);
-  const loadedPosts = [...document.querySelectorAll(".feed")];
-  console.log(loadedPosts);
-  const loadedPostsID = loadedPosts.map((post) => post.getAttribute("id"));
+  if (!currentUser) {
+    await getUserData();
+  }
   const response = await fetch(`${path}`, {
     method: "GET",
     headers: {
@@ -109,61 +93,61 @@ async function loadFeedPosts(path, userId, isMainFeed) {
     },
   });
   const data = await response.json();
+  updateUserProfile(data.user);
   addUniquePosts(data, isMainFeed);
-  return data.user;
+}
+
+function addUniquePosts(data, isMainFeed) {
+  if (isMainFeed) {
+    const uniquePosts = data.postHtmlList.filter((post) => {
+      return !loadedPostsSet.has(post.id);
+    });
+    if (uniquePosts.length > 0) {
+      uniquePosts.forEach((post) => {
+        loadedPostsSet.add(post.id);
+        feedContainer.insertAdjacentHTML("beforeend", post.html);
+      });
+      currPage++;
+    }
+  } else {
+    const uniquePosts = data.postHtmlList.filter((post) => {
+      const loadedPosts = [...profilePostContainer.querySelectorAll(".feed")];
+      const loadedPostsID = loadedPosts.map((post) => post.getAttribute("id"));
+      return !loadedPostsID.includes(post.id);
+    });
+    profilePostContainer = document.querySelector(".user-posts");
+    if (uniquePosts.length === 0) return;
+    uniquePosts.forEach((post) => {
+      profilePostContainer.insertAdjacentHTML("beforeend", post.html);
+    });
+  }
 }
 window.addEventListener("scroll", () => {
   if (sidebarFeed.classList.contains("hidden") || !isMainFeed) {
     return;
   }
   if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
-    loadFeedPosts(currPath, currUserid, isMainFeed);
-  }
-});
-
-// <=========================== MY-PROFILE ===========================> //
-
-function addUniquePosts(data, isMainFeed) {
-  const uniquePosts = data.postHtmlList.filter((post) => {
-    const loadedPosts = [...document.querySelectorAll(".feed")];
-    const loadedPostsID = loadedPosts.map((post) => post.getAttribute("id"));
-    return !loadedPostsID.includes(post.id);
-  });
-  if (uniquePosts.length > 0) {
     if (isMainFeed) {
-      uniquePosts.forEach((post) => {
-        feedContainer.insertAdjacentHTML("beforeend", post.html);
-      });
-    } else {
-      let html = "";
-      uniquePosts.forEach((post) => {
-        html += post.html;
-      });
-      feedContainer.innerHTML = html;
+      currPath = `/api/feed?page=${currPage}`;
+      console.log(currPath);
+      loadFeedPosts(currPath, currUserid, isMainFeed);
     }
   }
-  currPage++;
-}
-
+});
 // <=========================== USER-PROFILE ===========================> //
-// async function getClickedUserData(userID) {
-//   const response = await fetch("/profile", {
-//     method: "GET",
-//     headers: {
-//       "Content-Type": "application/json",
-//       Authorization: `Bearer ${userID}`,
-//     },
-//   });
-//   const userData = await response.json();
-// }
-// window.addEventListener("click", function (e) {
-//   e.preventDefault();
-//   if (e.target.classList.contains("user-click")) {
-//     const userID = e.target.getAttribute("id");
-//   }
-// });
+
 function updateUserProfile(user) {
-  const html = ` <div class="container-profile">
+  const isProfileLoaded = document.querySelector(".container-profile");
+  if (!user) {
+    console.log("not updating user profile");
+    return null;
+  }
+  if (isProfileLoaded) {
+    if (isProfileLoaded.getAttribute("id") == user.userID) {
+      return null;
+    }
+  }
+  const html = ` <div class="container-profile" id=${user.userID}>
   <div class="container mt-5 mb-5">
   <div class="row no-gutters">
       <div class="col-md-4 col-lg-4"><img src=${user.img}></div>
@@ -190,13 +174,15 @@ function updateUserProfile(user) {
                   <div class="profile-years-surfing p-3 bg-danger text-center skill-block">
                       <h4>${user.yearsSurfing}</h4>
                       <h6>Surfing</h6>
+                      </div>
                   </div>
               </div>
           </div>
       </div>
-  </div>
-</div>
-</div>`;
+    </div>
+    </div>
+    <div class="user-posts">
+  </div>`;
   profileContainer.innerHTML = html;
 }
 // <=========================== LOGIN MODAL ===========================> //
@@ -233,6 +219,8 @@ loginForm.addEventListener("submit", function (e) {
         closeModalLG();
         return;
       }
+      currentUser = data.currentUser;
+      console.log(currentUser);
       updateUser(data.currentUser);
       closeModalLG();
       const sessionData = {
@@ -314,6 +302,8 @@ btnLogout.addEventListener("click", () => {
   btnLogout.classList.add("hidden");
   btnLogin.classList.remove("hidden");
   btnSignup.classList.remove("hidden");
+  currentUser = null;
+  location.reload();
 });
 
 //-----------------------------------------------------------------------
@@ -334,20 +324,27 @@ sidebarFeed.addEventListener("click", function () {
   newsContainer.classList.add("hidden");
   profileContainer.classList.add("hidden");
   feedContainer.classList.remove("hidden");
-  createPostDiv.classList.remove("hidden");
+  if (currentUser) {
+    createPostDiv.classList.remove("hidden");
+  }
   isMainFeed = true;
+  currPath = `/api/feed?page=${currPage}`;
   loadFeedPosts(currPath, currUserid, isMainFeed);
 });
 
-sidebarProfile.addEventListener("click", async function () {
-  profileContainer.classList.remove("hidden");
-  // feedContainer.classList.add("hidden");
-  newsContainer.classList.add("hidden");
-  createPostDiv.classList.add("hidden");
-  isMainFeed = false;
-  currPath = `/api/my-profile?page=${currentPage}`;
-  const user = await loadFeedPosts(currPath, currUserid, isMainFeed);
-  updateUserProfile(user);
+sidebarProfile.addEventListener("click", async function (e) {
+  const isProfileLoaded = document.querySelector(".container-profile");
+  moveToUserProfile();
+  if (
+    currentUser &&
+    !isProfileLoaded.getAttribute("id") != currentUser.userID
+  ) {
+    console.log("my profile sidebar event ");
+    updateUserProfile(currentUser);
+    isMainFeed = false;
+    currPath = `/api/my-profile`;
+    loadFeedPosts(currPath, currUserid, isMainFeed);
+  }
 });
 
 sidebarNews.addEventListener("click", function () {
@@ -358,6 +355,12 @@ sidebarNews.addEventListener("click", function () {
   updateNews();
 });
 
+function moveToUserProfile() {
+  profileContainer.classList.remove("hidden");
+  feedContainer.classList.add("hidden");
+  newsContainer.classList.add("hidden");
+  createPostDiv.classList.add("hidden");
+}
 //-----------------------------------------------------------------------
 
 // <=========================== POSTING ===========================> //
@@ -402,29 +405,10 @@ createPostDiv.addEventListener("click", function (e) {
       .then((response) => response.json())
       .then((html) => {
         feedContainer.insertAdjacentHTML("afterbegin", html);
+        location.reload();
       });
   }
 });
-// postForm.addEventListener("submit", function (e) {
-//   console.log("asdasdasdasdasd");
-//   e.preventDefault();
-//   previewContainer.classList.add("hidden");
-
-//   const text = document.querySelector("#create-post");
-//   const imgName = inputImg.files[0] ? inputImg.files[0].name : "";
-//   const formData = new FormData(e.target);
-//   formData.append("imgName", imgName);
-//   text.value = "";
-
-//   fetch("/Post", {
-//     method: "POST",
-//     body: formData,
-//   })
-//     .then((response) => response.json())
-//     .then((html) => {
-//       feedContainer.insertAdjacentHTML("afterbegin", html);
-//     });
-// });
 
 //-----------------------------------------------------------------------
 
@@ -496,7 +480,13 @@ function closeCommentSection(input, section) {
   input.classList.add("hidden");
   section.classList.add("hidden");
 }
-
+function goToUser(userId) {
+  currPath = `/api/profile`;
+  currUserid = userId;
+  isMainFeed = false;
+  moveToUserProfile();
+  loadFeedPosts(currPath, currUserid, isMainFeed);
+}
 feedContainer.addEventListener("click", async function (e) {
   e.preventDefault();
   const post = e.target.closest(".feed");
@@ -527,55 +517,51 @@ feedContainer.addEventListener("click", async function (e) {
     e.target.classList.add("hidden");
   }
   if (e.target.classList.contains("hide-comments")) {
-    console.log("clicked");
-
     closeCommentSection(commentInput, commentSection);
     post.querySelector(".view-comments").classList.remove("hidden");
   }
   if (e.target.classList.contains("user-click")) {
-    console.log("clicked");
-    currLoadedPosts = aUserLoadedPosts;
-    currPath = `/api/profile?page=${currPage}`;
-    currUserid = e.target.getAttribute("id");
-    isMainFeed = false;
-    const user = await loadFeedPosts(currPath, currUserid, isMainFeed);
-    updateUserProfile(user);
+    goToUser(e.target.getAttribute("id"));
   }
 });
 
 // MY POSTS //
-// myPostsContainer.addEventListener("click", async function (e) {
-//   e.preventDefault();
-//   const post = e.target.closest(".feed");
-//   const commentSection = post.querySelector(".comments");
-//   const commentInput = post.querySelector(".comment-input");
+profileContainer.addEventListener("click", async function (e) {
+  e.preventDefault();
+  const post = e.target.closest(".feed");
+  const commentSection = post.querySelector(".comments");
+  const commentInput = post.querySelector(".comment-input");
 
-//   // LIKE //
-//   if (e.target.classList.contains("uil-heart")) {
-//     const postId = post.getAttribute("id");
-//     if (!e.target.classList.contains("btn-active")) {
-//       likePost(e.target, post);
-//     } else {
-//       unlikePost(postId, post);
-//     }
-//   }
-//   //COMMENTS
-//   if (e.target.classList.contains("uil-comment-dots")) {
-//     openCommentSection(commentInput, commentSection);
-//     post.querySelector(".view-comments").classList.add("hidden");
-//   }
-//   if (e.target.classList.contains("post-click")) {
-//     commentPost(post);
-//   }
-//   if (e.target.classList.contains("view-comments")) {
-//     openCommentSection(commentInput, commentSection);
-//     e.target.classList.add("hidden");
-//   }
-//   if (e.target.classList.contains("hide-comments")) {
-//     closeCommentSection(commentInput, commentSection);
-//     post.querySelector(".view-comments").classList.remove("hidden");
-//   }
-// });
+  // LIKE //
+  if (e.target.classList.contains("uil-heart")) {
+    const postId = post.getAttribute("id");
+    if (!e.target.classList.contains("btn-active")) {
+      likePost(e.target, post);
+    } else {
+      unlikePost(postId, post);
+    }
+  }
+  // COMMENTS //
+  if (e.target.classList.contains("uil-comment-dots")) {
+    openCommentSection(commentInput, commentSection);
+    post.querySelector(".view-comments").classList.add("hidden");
+  }
+  if (e.target.classList.contains("post-click")) {
+    commentPost(post);
+  }
+  if (e.target.classList.contains("view-comments")) {
+    openCommentSection(commentInput, commentSection);
+    e.target.classList.add("hidden");
+  }
+  if (e.target.classList.contains("hide-comments")) {
+    closeCommentSection(commentInput, commentSection);
+    post.querySelector(".view-comments").classList.remove("hidden");
+  }
+  // GO TO USER //
+  if (e.target.classList.contains("user-click")) {
+    goToUser(e.target.getAttribute("id"));
+  }
+});
 
 //READ-MORE (COMMENTS)
 const readMorePrefaceMaxLength = 120;
@@ -606,22 +592,6 @@ readMoreTexts.forEach((readMoreText) => {
   readMoreText.append(extraSpan);
 });
 
-// <=========================== GO TO USER ===========================> //
-containerMid.addEventListener("click", async function (e) {
-  e.preventDefault();
-  if (e.target.classList.contains("user-click")) {
-    console.log("clicked");
-    profileContainer.classList.remove("hidden");
-    feedContainer.classList.add("hidden");
-    createPostDiv.classList.add("hidden");
-    currLoadedPosts = aUserLoadedPosts;
-    currPath = `/api/profile?page=${currPage}`;
-    currUserid = e.target.getAttribute("id");
-    isMainFeed = false;
-    const user = await loadFeedPosts(currPath, currUserid, isMainFeed);
-    updateUserProfile(user);
-  }
-});
 // <=========================== NEWS ===========================> //
 function addArticles(articles) {
   articles.forEach((article) => {
