@@ -10,6 +10,10 @@ const userSchema = new mongoose.Schema({
   dateJoined: String,
   userID: String,
   img: String,
+  friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  likeCount: Number,
+  postCount: Number,
+  yearsSurfing: String,
 });
 
 export const User = mongoose.model("User", userSchema);
@@ -21,8 +25,10 @@ export async function createUser(
   email,
   handle,
   password,
-  img
+  img,
+  yearsSurfing
 ) {
+  console.log(yearsSurfing);
   const user = new User({
     name: name,
     country: country,
@@ -33,6 +39,10 @@ export async function createUser(
     dateJoined: new Date().toISOString().split("T")[0],
     userID: Math.floor(Date.now() / 100000).toString(),
     img: img,
+    friends: [],
+    likeCount: 0,
+    postCount: 0,
+    yearsSurfing: yearsSurfing,
   });
   await user.save().catch((err) => console.error("Error creating user:", err));
 }

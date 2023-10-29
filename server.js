@@ -19,7 +19,7 @@ import {
 } from "./public/db/models/user.js";
 import { Post, createPost } from "./public/db/models/post.js";
 import { createComment } from "./public/db/models/comment.js";
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 8;
 config();
 connectDB();
 //variables
@@ -99,18 +99,18 @@ app.get("/api/feed", async (req, res) => {
     .exec();
 
   const postHtmlList = posts.map((post) => {
-    console.log(post, "%%%% FEED %%%%");
     let liked = isContainUser(post.likes, currentUser);
     const html = post.generateHtml(liked);
     return { html: html, id: post.id };
   });
-  res.json(postHtmlList);
+  const user = currentUser;
+  res.json({ postHtmlList, user });
 });
 
 // <=========================== MY-POSTS ===========================> //
-app.get("/api/myPosts", async (req, res) => {
+app.get("/api/my-profile", async (req, res) => {
   const page = req.query.page || 1;
-  const posts = await Post.find({ user: currentUser })
+  const posts = await Post.find({ "user._id": currentUser._id })
     .sort({ createdAt: -1 })
     .skip((page - 1) * PAGE_SIZE)
     .limit(PAGE_SIZE)
@@ -126,10 +126,37 @@ app.get("/api/myPosts", async (req, res) => {
   const postHtmlList = posts.map((post) => {
     let liked = isContainUser(post.likes, currentUser);
     const html = post.generateHtml(liked);
-    return { html: html, id: post.id };
+    return { html: html, id: post.id, user: currentUser };
   });
-  res.json(postHtmlList);
+  const user = currentUser;
+  res.json({ postHtmlList, user });
 });
+// <=========================== USER-PROFILE ===========================> //
+app.get("/api/profile", async (req, res) => {
+  const page = req.query.page || 1;
+  const userId = req.headers.authorization.split(" ")[1];
+  const posts = await Post.find({ "user._id": userId })
+    .sort({ createdAt: -1 })
+    .skip((page - 1) * PAGE_SIZE)
+    .limit(PAGE_SIZE)
+    .populate([
+      { path: "likes", model: "User" },
+      {
+        path: "comments",
+        model: "Comment",
+        populate: { path: "user", model: "User" },
+      },
+    ])
+    .exec();
+  const user = await findUserById(userId);
+  const postHtmlList = posts.map((post) => {
+    let liked = isContainUser(post.likes, currentUser);
+    const html = post.generateHtml(liked);
+    return { html: html, id: post.id, user: currentUser };
+  });
+  res.json({ postHtmlList, user });
+});
+
 // <=========================== RE-LOGIN (REFRESH) ===========================> //
 app.get("/user", async (req, res) => {
   try {
@@ -149,11 +176,21 @@ app.get("/user", async (req, res) => {
 // <=========================== SIGN-UP ===========================> //
 app.post("/newUser", upload.single("image"), (req, res) => {
   const name = `${req.body.firstname} ${req.body.lastname}`;
-  const { country, age, email, password } = req.body;
+  const { country, age, email, password, timeSurfing } = req.body;
+  console.log(country, timeSurfing, "@@@@");
   const profileImg = req.file?.path || "./images/profile-photo.png";
   const handle = email.split("@")[0];
-  createUser(name, country, age, email, handle, password, profileImg);
-  res.sendFile(join(currentDir, "views", "community.html"));
+  createUser(
+    name,
+    country,
+    age,
+    email,
+    handle,
+    password,
+    profileImg,
+    timeSurfing
+  );
+  res.redirect("/community.html");
 });
 
 // <=========================== LOGIN ===========================> //
@@ -174,6 +211,8 @@ app.post("/Post", upload.single("postImage"), async (req, res) => {
   const imgPath = req.body.imgName ? `./uploads/${req.body.imgName}` : "";
   const post = await createPost(currentUser, postBody, imgPath);
   const html = post.generateHtml();
+  currentUser.postCount++;
+  await currentUser.save();
   res.json(html);
 });
 
@@ -181,25 +220,9 @@ app.post("/Post", upload.single("postImage"), async (req, res) => {
 app.post("/comment", async (req, res) => {
   const { text, postId } = req.body;
   const comment = await createComment(text, currentUser);
-  const post = await Post.findOne({ id: postId })
-  .populate([
-    { path: "likes", model: "User" },
-    {
-      path: "comments",
-      model: "Comment",
-      populate: { path: "user", model: "User" },
-    },
-  ])
-  .exec();
+  const post = await getPost(postId);
   post.comments.push(comment._id);
-  await post.populate([
-    { path: "likes", model: "User" },
-    {
-      path: "comments",
-      model: "Comment",
-      populate: { path: "user", model: "User" },
-    },
-  ]);
+  await populatePost(post);
   await post.save();
   const isLiked = isContainUser(post.likes, currentUser);
   const html = post.generateHtml(isLiked, true);
@@ -209,60 +232,23 @@ app.post("/comment", async (req, res) => {
 // <=========================== LIKE ===========================> //
 app.post("/like", async (req, res) => {
   const { postId } = req.body;
-  const post = await Post.findOne({ id: postId })
-    .populate([
-      { path: "likes", model: "User" },
-      {
-        path: "comments",
-        model: "Comment",
-        populate: { path: "user", model: "User" },
-      },
-    ])
-    .exec();
-  if (post.likes.includes(currentUser._id, 0)) {
-    res.json(null);
-  } else {
-    post.likes.push(currentUser._id);
-    await post.save();
-    const html = post.generateHtml(true);
-    res.json(html);
-  }
+  const post = await getPost(postId);
+  const response = await likePost(post);
+  res.json(response);
 });
 
 // <=========================== UNLIKE ===========================> //
 app.post("/unlike", async (req, res) => {
   const { postId } = req.body;
-  const post = await Post.findOne({ id: postId })
-    .populate([
-      { path: "likes", model: "User" },
-      {
-        path: "comments",
-        model: "Comment",
-        populate: { path: "user", model: "User" },
-      },
-    ])
-    .exec();
-  if (isContainUser(post.likes, currentUser)) {
-    // const indexToRemove = post.likes.indexOf(currentUser);
-    const indexToRemove = post.likes.findIndex(
-      (user) => user.userID == currentUser.userID
-    );
-    if (indexToRemove !== -1) {
-      post.likes.splice(indexToRemove, 1);
-    }
-    await post.save();
-    const html = post.generateHtml();
-    res.json(html);
-  } else {
-    res.json(null);
-  }
+  const post = await getPost(postId);
+  const response = await unlikePost(post);
+  res.json(response);
 });
 // <=========================== NEWS ===========================> //
-app.get('/news', async(req, res) => {
+app.get("/news", async (req, res) => {
   const articles = await fetchAndProccessArticles();
-  console.log(articles, '@@@@@@@@@@@@@@@@@');
-  res.json(articles)
-})
+  res.json(articles);
+});
 
 // <=========================== 404 ===========================> //
 app.all("*", (req, res) => {
@@ -278,7 +264,62 @@ mongoose.connection.once("open", () => {
 });
 
 // <=========================== HELPER FUNCTIONS ===========================> //
+
+async function populatePost(post) {
+  await post.populate([
+    { path: "likes", model: "User" },
+    {
+      path: "comments",
+      model: "Comment",
+      populate: { path: "user", model: "User" },
+    },
+  ]);
+}
+async function unlikePost(post) {
+  if (isContainUser(post.likes, currentUser)) {
+    const indexToRemove = post.likes.findIndex(
+      (user) => user.userID == currentUser.userID
+    );
+    if (indexToRemove !== -1) {
+      post.likes.splice(indexToRemove, 1);
+      currentUser.likeCount--;
+      await currentUser.save();
+    }
+    await post.save();
+    const html = post.generateHtml();
+    return html;
+  } else {
+    return null;
+  }
+}
+async function likePost(post) {
+  if (isContainUser(post.likes, currentUser)) {
+    return null;
+  } else {
+    post.likes.push(currentUser);
+    currentUser.likeCount++;
+    await currentUser.save();
+    await post.save();
+    const html = post.generateHtml(true);
+    return html;
+  }
+}
+async function getPost(postId) {
+  return await Post.findOne({ id: postId })
+    .populate([
+      { path: "likes", model: "User" },
+      {
+        path: "comments",
+        model: "Comment",
+        populate: { path: "user", model: "User" },
+      },
+    ])
+    .exec();
+}
 function isContainUser(userList, user) {
+  if (!user) {
+    return false;
+  }
   for (let u of userList) {
     if (u.userID == user.userID) {
       return true;

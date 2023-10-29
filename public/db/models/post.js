@@ -1,7 +1,5 @@
 "use strict";
 import mongoose from "mongoose";
-import { User } from "./user.js";
-import { Comment } from "./comment.js";
 import { generateKey } from "../../../server.js";
 const postSchema = new mongoose.Schema({
   user: Object,
@@ -22,13 +20,16 @@ const postSchema = new mongoose.Schema({
   },
   id: String,
 });
-postSchema.methods.generateHtml = function (likeActive=false, afterComment=false) {
-  likeActive = likeActive ? 'btn-active' : '';
-  let showCommentStatus = '';
-  let commentSectionStatus = 'hidden';
-  if(afterComment){
-    showCommentStatus = 'hidden'
-    commentSectionStatus = ''
+postSchema.methods.generateHtml = function (
+  likeActive = false,
+  afterComment = false
+) {
+  const state = likeActive ? "btn-active" : "";
+  let showCommentState = "";
+  let commentSectionState = "hidden";
+  if (afterComment) {
+    showCommentState = "hidden";
+    commentSectionState = "";
   }
   let likeByHtml;
   let commentsHtml = "";
@@ -37,19 +38,31 @@ postSchema.methods.generateHtml = function (likeActive=false, afterComment=false
   });
   if (this.likes.length > 2) {
     likeByHtml = `
-            <span><img src=${this.likes[0]?.img} ></span>
-            <span><img src=${this.likes[1]?.img} ></span>
-            <span><img src=${this.likes[2]?.img} ></span>
-            <p>Liked by ${this.likes.length - 1} people</p>`;
+            <span><img src=${this.likes[this.likes.length - 1]?.img} ></span>
+            <span><img src=${this.likes[this.likes.length - 2]?.img} ></span>
+            <span><img src=${this.likes[this.likes.length - 3]?.img} ></span>
+            <p>Liked by ${this.likes[this.likes.length - 1].name} and ${
+      this.likes.length - 1
+    } others</p>`;
+  } else if (this.likes.length == 1) {
+    likeByHtml = `
+    <span><img src=${this.likes[0]?.img} ></span>
+    <p>Liked by </b> ${this.likes[0].name}</p>`;
+  } else if (this.likes.length == 2) {
+    likeByHtml = `            
+    <span><img src=${this.likes[this.likes.length - 1]?.img} ></span>
+    <span><img src=${this.likes[this.likes.length - 2]?.img} ></span>
+    Liked by </b> ${this.likes[0]?.name} and 1 other</p>
+    `;
   } else {
-    likeByHtml = `<p>Liked by </b> ${this.likes.length} people</p>`;
+    likeByHtml = `0 likes`;
   }
   const imgHtml = this.img ? `<img src=${this.img}>` : "";
   const html = `<div class="feed" id="${this.id}">
         <div class="head">
-          <div class="user">
-            <div class="profile-photo">
-              <img src=${this.user.img}>
+          <div class="user user-click" id=${this.user.userID}>
+            <div class="profile-photo user-click" id=${this.user.userID}>
+              <img class="user-click" id=${this.user.userID} src=${this.user.img}>
             </div>
             <div class="info">
               <h3>${this.user.name}</h3>
@@ -68,7 +81,7 @@ postSchema.methods.generateHtml = function (likeActive=false, afterComment=false
         </div>
         <div class="action-buttons">
           <div class="interaction-buttons">
-            <span><i class="uil uil-heart ${likeActive}" data-item-id=${this.id}></i></span>
+            <span><i class="uil uil-heart ${state}" data-item-id=${this.id}></i></span>
             <span><i class="uil uil-comment-dots" data-item-id=${this.id}></i></span>
             <span><i class="uil uil-share-alt" data-item-id=${this.id}></i></span>
           </div>
@@ -76,11 +89,11 @@ postSchema.methods.generateHtml = function (likeActive=false, afterComment=false
         <div class="liked-by">
             ${likeByHtml}
         </div>
-        <div class="comments ${commentSectionStatus}">
+        <div class="comments ${commentSectionState}">
             <p class="comment-section">COMMENT SECTION ( ${this.comments.length} )</p>
             ${commentsHtml}
         </div>
-        <div class="comment-input ${commentSectionStatus}" id=${this.id}>
+        <div class="comment-input ${commentSectionState}" id=${this.id}>
         <form class="container post-comment">
           <div class="profile-photo">
             <img src="./images/userImg/me.jpg" alt="profile-photo">
@@ -90,7 +103,7 @@ postSchema.methods.generateHtml = function (likeActive=false, afterComment=false
           </form>
           <a class="hide-comments">Hide comments</a>
     </div>
-        <div class="text-muted"><a class="view-comments ${showCommentStatus}">View all ${this.comments.length} comments</a></div>
+        <div class="text-muted"><a class="view-comments ${showCommentState}">View all ${this.comments.length} comments</a></div>
 
       </div>`;
   return html;
@@ -121,9 +134,15 @@ export async function createPost(currentUser, postBody, postImg) {
 
 function generateCommentHtml(comment) {
   const html = `<div class="comment">
-      <img class="profile-photo curr-user" src=${comment.user.img} alt="">
+      <img id=${
+        comment.user.userID
+      } class="profile-photo curr-user user-click" src=${
+    comment.user.img
+  } alt="">
       <div class="comment-body">
-        <h3>${comment.user.name}:</h3>
+        <h3 class="user-click" id=${comment.user.userID}>${
+    comment.user.name
+  }:</h3>
         <p class="read-more-text">
         ${comment.text}
         </p>
