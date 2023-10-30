@@ -1,6 +1,6 @@
 "use strict";
-
 const postForm = document.querySelector(".create-post");
+const createPostDiv = document.querySelector(".create-post-div");
 const signupForm = document.querySelector(".signup__form");
 const loginForm = document.querySelector(".login__form");
 const sidebarNews = document.querySelector("#news");
@@ -19,24 +19,22 @@ const btnCloseModalLG = document.querySelector(
 const signupModal = document.querySelector(".sign-up-modal");
 const loginModal = document.querySelector(".login-modal");
 const modalOverlay = document.querySelector(".overlay-modal");
-const article = document.querySelector(".card");
 const articleContainer = document.querySelector(".articles");
 const feedContainer = document.querySelector(".feeds");
-const myPostsContainer = document.querySelector(".user-posts");
 const newsContainer = document.querySelector(".news");
+const containerMid = document.querySelector(".mid");
 const profileContainer = document.querySelector(".my-profile");
 const previewContainer = document.querySelector(".img-preview");
 const menuItems = document.querySelectorAll(".menu-item");
+let profilePostContainer = document.querySelector(".user-posts");
 let currentPage = 1;
-let myPostCurrentPage = 1;
-let formComment = document.querySelector(".comment-input");
-let btnsLike = document.querySelector(".uil-heart");
-let btnsComment = document.querySelectorAll(".uil-comment-dots");
-let btnsShare = document.querySelectorAll(".uil-share-alt");
 let currPostImgSrc = "";
-let currProfileImgSrc = "";
 let currentUser;
-loadPosts();
+let currPage = 1;
+let currPath = `/api/feed?page=${currPage}`;
+let currUserid = "none";
+let isMainFeed = true;
+loadFeedPosts(currPath, currUserid, isMainFeed);
 
 btnLogo.addEventListener("click", () => {
   window.location.href = "/";
@@ -46,7 +44,6 @@ btnLogo.addEventListener("click", () => {
 
 function checkLoggedIn() {
   const storedSession = localStorage.getItem("sessionData");
-  console.log(storedSession);
   if (storedSession) {
     return JSON.parse(storedSession);
   }
@@ -56,6 +53,7 @@ function checkLoggedIn() {
 async function getUserData() {
   const userInfo = checkLoggedIn();
   if (!userInfo) {
+    console.log("user not logged in");
     return;
   }
   const response = await fetch("/user", {
@@ -71,70 +69,82 @@ async function getUserData() {
   }
 
   const userData = await response.json();
+  currentUser = userData;
   updateUser(userData);
 }
 // <=========================== LOAD-POSTS ===========================> //
-const loadedPosts = new Set();
 
-async function loadPosts() {
-  await getUserData();
-
-  const response = await fetch(`/api/feed?page=${currentPage}`);
-  const postHtmlList = await response.json();
-  if (postHtmlList.length > 0) {
-    const uniquePosts = postHtmlList.filter(
-      (post) => !loadedPosts.has(post.id)
-    );
-    uniquePosts.forEach((post) => {
-      feedContainer.insertAdjacentHTML("beforeend", post.html);
-      loadedPosts.add(post.id);
-    });
-
-    currentPage++;
+let loadedPostsSet = new Set();
+async function loadFeedPosts(path, userId, isMainFeed) {
+  if (!currentUser) {
+    await getUserData();
   }
+  const response = await fetch(`${path}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${userId}`,
+    },
+  });
+  const data = await response.json();
+  updateUserProfile(data.user, data.userHtml);
+  addUniquePosts(data, isMainFeed);
+}
+
+function addUniquePosts(data, isMainFeed) {
+  if (isMainFeed) {
+    const uniquePosts = data.postHtmlList.filter((post) => {
+      return !loadedPostsSet.has(post.id);
+    });
+    if (uniquePosts.length > 0) {
+      uniquePosts.forEach((post) => {
+        loadedPostsSet.add(post.id);
+        feedContainer.insertAdjacentHTML("beforeend", post.html);
+      });
+      currPage++;
+    }
+  } else {
+    const uniquePosts = data.postHtmlList.filter((post) => {
+      const loadedPosts = [...profilePostContainer.querySelectorAll(".feed")];
+      const loadedPostsID = loadedPosts.map((post) => post.getAttribute("id"));
+      return !loadedPostsID.includes(post.id);
+    });
+    profilePostContainer = document.querySelector(".user-posts");
+    if (uniquePosts.length === 0) return;
+    uniquePosts.forEach((post) => {
+      profilePostContainer.insertAdjacentHTML("beforeend", post.html);
+    });
+  }
+  document
+    .querySelectorAll(".comment-input .profile-photo img")
+    .forEach((img) => (img.src = currentUser?.img));
 }
 window.addEventListener("scroll", () => {
-  if (sidebarFeed.classList.contains("hidden")) {
+  if (sidebarFeed.classList.contains("hidden") || !isMainFeed) {
     return;
   }
   if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
-    loadPosts();
-    btnsLike = document.querySelectorAll(".uil-heart");
-    btnsComment = document.querySelectorAll(".uil-comment-dots");
-    btnsShare = document.querySelectorAll(".uil-share-alt");
+    if (isMainFeed) {
+      currPath = `/api/feed?page=${currPage}`;
+      console.log(currPath);
+      loadFeedPosts(currPath, currUserid, isMainFeed);
+    }
   }
 });
+// <=========================== USER-PROFILE ===========================> //
 
-// <=========================== LOAD-MY-POSTS ===========================> //
-const myLoadedPosts = new Set();
-async function loadMyPosts() {
-  await getUserData();
-
-  const response = await fetch(`/api/myPosts?page=${myPostCurrentPage}`);
-  const postHtmlList = await response.json();
-  if (postHtmlList.length > 0) {
-    const uniquePosts = postHtmlList.filter(
-      (post) => !myLoadedPosts.has(post.id)
-    );
-    uniquePosts.forEach((post) => {
-      myPostsContainer.insertAdjacentHTML("beforeend", post.html);
-      myLoadedPosts.add(post.id);
-    });
-
-    myPostCurrentPage++;
+function updateUserProfile(user, userProfileHtml) {
+  const isProfileLoaded = document.querySelector(".container-profile");
+  if (!user) {
+    return null;
   }
+  if (isProfileLoaded) {
+    if (isProfileLoaded.getAttribute("id") == user.userID) {
+      return null;
+    }
+  }
+  profileContainer.innerHTML = userProfileHtml;
 }
-window.addEventListener("scroll", () => {
-  if (sidebarProfile.classList.contains("hidden")) {
-    return;
-  }
-  if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
-    loadPosts();
-    btnsLike = document.querySelectorAll(".uil-heart");
-    btnsComment = document.querySelectorAll(".uil-comment-dots");
-    btnsShare = document.querySelectorAll(".uil-share-alt");
-  }
-});
 // <=========================== LOGIN MODAL ===========================> //
 
 const openModalLG = function (e) {
@@ -169,6 +179,7 @@ loginForm.addEventListener("submit", function (e) {
         closeModalLG();
         return;
       }
+      currentUser = data.currentUser;
       updateUser(data.currentUser);
       closeModalLG();
       const sessionData = {
@@ -182,6 +193,7 @@ function updateUser(user) {
   const profilePohots = document.querySelectorAll(
     ".profile-photo.curr-user img"
   );
+  console.log(profilePohots);
   const handle = document.querySelector(".hashtag");
   const name = document.querySelector(".handle h4");
   const postHolder = document.querySelector(".create-post input");
@@ -250,6 +262,9 @@ btnLogout.addEventListener("click", () => {
   btnLogout.classList.add("hidden");
   btnLogin.classList.remove("hidden");
   btnSignup.classList.remove("hidden");
+  profileContainer.classList.add("hidden");
+  currentUser = null;
+  location.reload();
 });
 
 //-----------------------------------------------------------------------
@@ -270,25 +285,41 @@ sidebarFeed.addEventListener("click", function () {
   newsContainer.classList.add("hidden");
   profileContainer.classList.add("hidden");
   feedContainer.classList.remove("hidden");
-  postForm.classList.remove("hidden");
+  if (currentUser) {
+    createPostDiv.classList.remove("hidden");
+  }
+  isMainFeed = true;
+  currPath = `/api/feed?page=${currPage}`;
+  loadFeedPosts(currPath, currUserid, isMainFeed);
 });
 
-sidebarProfile.addEventListener("click", function () {
-  profileContainer.classList.remove("hidden");
-  feedContainer.classList.add("hidden");
-  newsContainer.classList.add("hidden");
-
-  loadMyPosts();
+sidebarProfile.addEventListener("click", async function (e) {
+  const isProfileLoaded = document.querySelector(".container-profile");
+  moveToUserProfile();
+  if (
+    currentUser &&
+    !isProfileLoaded?.getAttribute("id") != currentUser.userID
+  ) {
+    isMainFeed = false;
+    currPath = `/api/my-profile`;
+    loadFeedPosts(currPath, currUserid, isMainFeed);
+  }
 });
 
 sidebarNews.addEventListener("click", function () {
   newsContainer.classList.remove("hidden");
   profileContainer.classList.add("hidden");
   feedContainer.classList.add("hidden");
-  postForm.classList.add("hidden");
+  createPostDiv.classList.add("hidden");
   updateNews();
 });
 
+function moveToUserProfile() {
+  profileContainer.classList.remove("hidden");
+  feedContainer.classList.add("hidden");
+  newsContainer.classList.add("hidden");
+  createPostDiv.classList.add("hidden");
+}
 //-----------------------------------------------------------------------
 
 // <=========================== POSTING ===========================> //
@@ -314,25 +345,26 @@ function previewFile() {
   }
 }
 //post click//
-postForm.addEventListener("submit", function (e) {
+createPostDiv.addEventListener("click", function (e) {
   e.preventDefault();
-  previewContainer.classList.add("hidden");
+  if (e.target.classList.contains("post")) {
+    previewContainer.classList.add("hidden");
 
-  const text = document.querySelector("#create-post");
-  const imgName = inputImg.files[0] ? inputImg.files[0].name : "";
-  const formData = new FormData(e.target);
-  formData.append("imgName", imgName);
-  console.log(formData);
-  text.value = "";
+    const text = document.querySelector("#create-post");
+    const imgName = inputImg.files[0] ? inputImg.files[0].name : "";
+    const formData = new FormData(postForm);
+    formData.append("imgName", imgName);
+    text.value = "";
 
-  fetch("/Post", {
-    method: "POST",
-    body: formData,
-  })
-    .then((response) => response.json())
-    .then((html) => {
-      feedContainer.insertAdjacentHTML("afterbegin", html);
-    });
+    fetch("/Post", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((html) => {
+        feedContainer.insertAdjacentHTML("afterbegin", html);
+      });
+  }
 });
 
 //-----------------------------------------------------------------------
@@ -389,30 +421,41 @@ function commentPost(post) {
     .then((response) => response.json())
     .then((html) => {
       post.outerHTML = html;
-      post.querySelector(".comments").classList.remove('hidden');
-      post.querySelector('.comment-input').classList.remove('hidden');
+
+      const newPostElement = document.querySelector(`#${postID}`);
+      newPostElement.querySelector(".comment-input img").src = currentUser?.img;
     });
 }
 
-function openCommentSection(input, section){
-  input.classList.remove('hidden')
-  section.classList.remove('hidden')
+function openCommentSection(input, section) {
+  input.classList.remove("hidden");
+  section.classList.remove("hidden");
   input.querySelector('input[type="text"]').focus();
 }
-function closeCommentSection(input, section){
-  input.classList.add('hidden')
-  section.classList.add('hidden')
+function closeCommentSection(input, section) {
+  input.classList.add("hidden");
+  section.classList.add("hidden");
 }
-
+function goToUser(userId) {
+  currPath = `/api/profile`;
+  currUserid = userId;
+  isMainFeed = false;
+  moveToUserProfile();
+  loadFeedPosts(currPath, currUserid, isMainFeed);
+  changeActive();
+}
 feedContainer.addEventListener("click", async function (e) {
   e.preventDefault();
   const post = e.target.closest(".feed");
   const commentSection = post.querySelector(".comments");
-  const commentInput = post.querySelector('.comment-input');
+  const commentInput = post.querySelector(".comment-input");
 
   // LIKE //
   if (e.target.classList.contains("uil-heart")) {
-    // const targetPost = e.target.closest(".feed");
+    if (!currentUser) {
+      window.alert("Login to engage with posts");
+      return;
+    }
     const postId = post.getAttribute("id");
     if (!e.target.classList.contains("btn-active")) {
       likePost(e.target, post);
@@ -423,32 +466,73 @@ feedContainer.addEventListener("click", async function (e) {
 
   // COMMENTS //
   if (e.target.classList.contains("uil-comment-dots")) {
-    openCommentSection(commentInput, commentSection,)
-    post.querySelector('.view-comments').classList.add('hidden');
-
+    if (!currentUser) {
+      window.alert("Login to engage with posts");
+      return;
+    }
+    openCommentSection(commentInput, commentSection);
+    post.querySelector(".view-comments").classList.add("hidden");
   }
   if (e.target.classList.contains("post-click")) {
     commentPost(post);
   }
   if (e.target.classList.contains("view-comments")) {
-    openCommentSection(commentInput, commentSection)
+    openCommentSection(commentInput, commentSection);
     e.target.classList.add("hidden");
   }
-  if(e.target.classList.contains('hide-comments')){
-    closeCommentSection(commentInput, commentSection)
-    post.querySelector('.view-comments').classList.remove('hidden');
+  if (e.target.classList.contains("hide-comments")) {
+    closeCommentSection(commentInput, commentSection);
+    post.querySelector(".view-comments").classList.remove("hidden");
+  }
+  if (e.target.classList.contains("user-click")) {
+    goToUser(e.target.getAttribute("id"));
   }
 });
 
-// MY POSTS //
-myPostsContainer.addEventListener('click', function(e) {
+async function followUser(target) {
+  const profile = target.closest(".container-profile");
+  const userID = profile.getAttribute("id");
+  fetch("/follow", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userID }),
+  })
+    .then((response) => response.json())
+    .then((newCount) => {
+      profile.querySelector(".followersCount h3").textContent = newCount;
+      const followState = profile.querySelector("a.follow");
+      followState.classList.remove("follow");
+      followState.classList.add("unfollow");
+      followState.textContent = "Following";
+    });
+}
+async function unfollowUser(target) {
+  const profile = target.closest(".container-profile");
+  const userID = profile.getAttribute("id");
+  fetch("/unfollow", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userID }),
+  })
+    .then((response) => response.json())
+    .then((newCount) => {
+      profile.querySelector(".followersCount h3").textContent = newCount;
+      const followState = profile.querySelector("a.unfollow");
+      followState.classList.remove("unfollow");
+      followState.classList.add("follow");
+      followState.textContent = "Follow";
+    });
+}
+// USER PROFILE //
+profileContainer.addEventListener("click", async function (e) {
   e.preventDefault();
-  const post = e.target.closest(".feed");
-  const commentSection = post.querySelector(".comments");
-  const commentInput = post.querySelector('.comment-input');
-
   // LIKE //
   if (e.target.classList.contains("uil-heart")) {
+    const post = e.target.closest(".feed");
     const postId = post.getAttribute("id");
     if (!e.target.classList.contains("btn-active")) {
       likePost(e.target, post);
@@ -456,31 +540,49 @@ myPostsContainer.addEventListener('click', function(e) {
       unlikePost(postId, post);
     }
   }
-  //COMMENTS
+  // COMMENTS //
   if (e.target.classList.contains("uil-comment-dots")) {
-    openCommentSection(commentInput, commentSection,)
-    post.querySelector('.view-comments').classList.add('hidden');
-
+    const post = e.target.closest(".feed");
+    const commentSection = post.querySelector(".comments");
+    const commentInput = post.querySelector(".comment-input");
+    openCommentSection(commentInput, commentSection);
+    post.querySelector(".view-comments").classList.add("hidden");
   }
   if (e.target.classList.contains("post-click")) {
+    const post = e.target.closest(".feed");
     commentPost(post);
   }
   if (e.target.classList.contains("view-comments")) {
-    openCommentSection(commentInput, commentSection,)
+    const post = e.target.closest(".feed");
+    const commentSection = post.querySelector(".comments");
+    const commentInput = post.querySelector(".comment-input");
+    openCommentSection(commentInput, commentSection);
     e.target.classList.add("hidden");
   }
-  if(e.target.classList.contains('hide-comments')){
-    closeCommentSection(commentInput, commentSection)
-    post.querySelector('.view-comments').classList.remove('hidden');
+  if (e.target.classList.contains("hide-comments")) {
+    const post = e.target.closest(".feed");
+    const commentSection = post.querySelector(".comments");
+    const commentInput = post.querySelector(".comment-input");
+    closeCommentSection(commentInput, commentSection);
+    post.querySelector(".view-comments").classList.remove("hidden");
   }
-})
+  // GO TO USER //
+  if (e.target.classList.contains("user-click")) {
+    goToUser(e.target.getAttribute("id"));
+  }
+  if (e.target.classList.contains("follow")) {
+    followUser(e.target);
+  }
+  if (e.target.classList.contains("unfollow")) {
+    unfollowUser(e.target);
+  }
+});
 
 //READ-MORE (COMMENTS)
 const readMorePrefaceMaxLength = 120;
 const readMoreTexts = document.querySelectorAll(".read-more-text");
 readMoreTexts.forEach((readMoreText) => {
   const extra = SliceHTML.sliceHTML(readMoreText, readMorePrefaceMaxLength);
-  console.log(extra);
   if (extra.textContent.length === 0) {
     return;
   }
@@ -505,8 +607,9 @@ readMoreTexts.forEach((readMoreText) => {
   readMoreText.append(extraSpan);
 });
 
+// <=========================== NEWS ===========================> //
 function addArticles(articles) {
-  articles.forEach(article => {    
+  articles.forEach((article) => {
     const html = `<div class="card">
     <img
       class="card-img-top"
@@ -520,11 +623,11 @@ function addArticles(articles) {
       </p>
       <a href=${article.url} class="btn btn-primary">Read more</a>
     </div>
-  </div>`
-  articleContainer.insertAdjacentHTML("beforeend", html)
-  })
+  </div>`;
+    articleContainer.insertAdjacentHTML("beforeend", html);
+  });
 }
-async function updateNews(){
+async function updateNews() {
   const response = await fetch("/news", {
     method: "GET",
     headers: {
@@ -537,5 +640,4 @@ async function updateNews(){
   }
   const articles = await response.json();
   addArticles(articles);
-  
 }
