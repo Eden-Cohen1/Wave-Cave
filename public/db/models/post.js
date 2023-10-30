@@ -1,6 +1,7 @@
 "use strict";
 import mongoose from "mongoose";
 import { generateKey } from "../../../server.js";
+import moment from "moment";
 const postSchema = new mongoose.Schema({
   user: Object,
   postText: String,
@@ -24,6 +25,7 @@ postSchema.methods.generateHtml = function (
   likeActive = false,
   afterComment = false
 ) {
+  const timeAgo = generateTime(this);
   const state = likeActive ? "btn-active" : "";
   let showCommentState = "";
   let commentSectionState = "hidden";
@@ -41,7 +43,7 @@ postSchema.methods.generateHtml = function (
             <span><img src=${this.likes[this.likes.length - 1]?.img} ></span>
             <span><img src=${this.likes[this.likes.length - 2]?.img} ></span>
             <span><img src=${this.likes[this.likes.length - 3]?.img} ></span>
-            <p>Liked by ${this.likes[this.likes.length - 1].name} and ${
+            <p> Liked by ${this.likes[this.likes.length - 1].name} and ${
       this.likes.length - 1
     } others</p>`;
   } else if (this.likes.length == 1) {
@@ -66,7 +68,7 @@ postSchema.methods.generateHtml = function (
             </div>
             <div class="info">
               <h3>${this.user.name}</h3>
-              <small><b>${this.user.country}</b>, ${this.time}</small>
+              <small><b>${this.user.country}</b>, ${timeAgo}</small>
             </div>
           </div>
           <span class="edit">
@@ -95,8 +97,8 @@ postSchema.methods.generateHtml = function (
         </div>
         <div class="comment-input ${commentSectionState}" id=${this.id}>
         <form class="container post-comment">
-          <div class="profile-photo">
-            <img src="./images/userImg/me.jpg" alt="profile-photo">
+          <div class="profile-photo curr-user">
+            <img src="" alt="profile-photo">
           </div>
             <input type="text" placeholder="Leave a comment" id="post-comment">
             <input type="submit" value="Comment" class="post post-click">
@@ -133,26 +135,25 @@ export async function createPost(currentUser, postBody, postImg) {
 }
 
 function generateCommentHtml(comment) {
+  const timeAgo = generateTime(comment);
   const html = `<div class="comment">
-      <img id=${
-        comment.user.userID
-      } class="profile-photo curr-user user-click" src=${
-    comment.user.img
-  } alt="">
+      <img id=${comment.user.userID} class="profile-photo curr-user user-click" src=${comment.user.img} alt="">
       <div class="comment-body">
-        <h3 class="user-click" id=${comment.user.userID}>${
-    comment.user.name
-  }:</h3>
+        <h3 class="user-click" id=${comment.user.userID}>${comment.user.name}:</h3>
         <p class="read-more-text">
         ${comment.text}
         </p>
-      </div>
-      <div class="comment-time">   
-      <p class="text-muted"> ${comment.createdAt
-        .toLocaleString()
-        .split("GMT")[0]
-        .slice(0, -3)} </p>
+        </div>
+      <div class="comment-time">
+      <p class="text-muted"> ${timeAgo} </p>
         </div>
     </div>`;
   return html;
+}
+
+function generateTime(object) {
+  const objectDate = moment(object.createdAt);
+  const currentDate = moment();
+  const timeAgo = objectDate.from(currentDate);
+  return timeAgo;
 }

@@ -121,6 +121,9 @@ function addUniquePosts(data, isMainFeed) {
       profilePostContainer.insertAdjacentHTML("beforeend", post.html);
     });
   }
+  document
+    .querySelectorAll(".comment-input .profile-photo img")
+    .forEach((img) => (img.src = currentUser?.img));
 }
 window.addEventListener("scroll", () => {
   if (sidebarFeed.classList.contains("hidden") || !isMainFeed) {
@@ -139,7 +142,6 @@ window.addEventListener("scroll", () => {
 function updateUserProfile(user) {
   const isProfileLoaded = document.querySelector(".container-profile");
   if (!user) {
-    console.log("not updating user profile");
     return null;
   }
   if (isProfileLoaded) {
@@ -147,7 +149,7 @@ function updateUserProfile(user) {
       return null;
     }
   }
-  const html = ` <div class="container-profile" id=${user.userID}>
+  const html = `<div class="container-profile" id=${user.userID}>
   <div class="container mt-5 mb-5">
   <div class="row no-gutters">
       <div class="col-md-4 col-lg-4"><img src=${user.img}></div>
@@ -220,7 +222,6 @@ loginForm.addEventListener("submit", function (e) {
         return;
       }
       currentUser = data.currentUser;
-      console.log(currentUser);
       updateUser(data.currentUser);
       closeModalLG();
       const sessionData = {
@@ -234,6 +235,7 @@ function updateUser(user) {
   const profilePohots = document.querySelectorAll(
     ".profile-photo.curr-user img"
   );
+  console.log(profilePohots);
   const handle = document.querySelector(".hashtag");
   const name = document.querySelector(".handle h4");
   const postHolder = document.querySelector(".create-post input");
@@ -302,6 +304,7 @@ btnLogout.addEventListener("click", () => {
   btnLogout.classList.add("hidden");
   btnLogin.classList.remove("hidden");
   btnSignup.classList.remove("hidden");
+  profileContainer.classList.add("hidden");
   currentUser = null;
   location.reload();
 });
@@ -339,7 +342,6 @@ sidebarProfile.addEventListener("click", async function (e) {
     currentUser &&
     !isProfileLoaded.getAttribute("id") != currentUser.userID
   ) {
-    console.log("my profile sidebar event ");
     updateUserProfile(currentUser);
     isMainFeed = false;
     currPath = `/api/my-profile`;
@@ -389,7 +391,6 @@ function previewFile() {
 createPostDiv.addEventListener("click", function (e) {
   e.preventDefault();
   if (e.target.classList.contains("post")) {
-    console.log("asdasdasdasdasd");
     previewContainer.classList.add("hidden");
 
     const text = document.querySelector("#create-post");
@@ -466,6 +467,9 @@ function commentPost(post) {
       post.outerHTML = html;
       post.querySelector(".comments").classList.remove("hidden");
       post.querySelector(".comment-input").classList.remove("hidden");
+      console.log(post.querySelector(".comment-input img"));
+      post.querySelector(".comment-input img").src = currentUser?.img;
+      console.log(post.querySelector(".comment-input img"));
     });
 }
 
@@ -475,8 +479,6 @@ function openCommentSection(input, section) {
   input.querySelector('input[type="text"]').focus();
 }
 function closeCommentSection(input, section) {
-  console.log("clicked2");
-
   input.classList.add("hidden");
   section.classList.add("hidden");
 }

@@ -30,7 +30,5 @@ export function wrapArticles(articles) {
     const newArticle = new Article(title, description, content, url, image);
     allArticles.push(newArticle);
   }
-  console.log(allArticles);
   return allArticles;
 }
-

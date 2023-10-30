@@ -543,12 +543,12 @@ i.uil-share-alt:hover {
   display: flex;
   align-items: center;
   left: 0;
-  margin-bottom: 0.5rem;
-  padding: 1rem;
+  /* margin-bottom: 0.5rem; */
+  padding: 0.7rem 0rem 0.2rem 0rem;
   border-top: solid;
-  border-color: rgba(255, 255, 255, 0.466);
-  border-width: 0.1rem;
-  gap: 0.7rem;
+  border-color: rgba(255, 255, 255, 0.212);
+  border-width: 0.01rem;
+  column-gap: 0.5rem;
   flex-wrap: wrap;
 }
 .comment .profile-photo {
@@ -564,10 +564,14 @@ i.uil-share-alt:hover {
   flex: 1;
   flex-direction: column;
   border-radius: var(--card-border-radius);
-  border: solid;
-  background-color: var(--bg-color);
-  border-width: 0.1rem;
-  padding: 0.5rem;
+  color: #e4e6eb;
+  background-color: #363738;
+  padding: 0.5rem 1rem 0.5rem 0.5rem;
+  max-width: fit-content;
+  min-width: 7rem;
+}
+.comment-body p {
+  margin-bottom: 0 !important;
 }
 
 .comment .read-more {
@@ -576,9 +580,14 @@ i.uil-share-alt:hover {
   cursor: pointer;
 }
 .comment h3 {
-  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.747);
   font-weight: 600;
+  font-size: 0.9rem;
   overflow: hidden;
+}
+.comment span {
+  left: 0;
+  bottom: 0;
 }
 .read-more-button {
   cursor: pointer;
@@ -589,9 +598,12 @@ i.uil-share-alt:hover {
   cursor: pointer;
 }
 .comment-time {
+  font-size: small;
   flex: 0 0 100%;
-  margin-left: 4rem;
+  margin-left: 3.7rem;
+  margin-top: 0.1rem;
   font-weight: 500;
+  display: inline-flex;
 }
 .hide-comments {
   cursor: pointer;
