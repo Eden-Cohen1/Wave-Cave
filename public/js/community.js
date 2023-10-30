@@ -28,13 +28,7 @@ const previewContainer = document.querySelector(".img-preview");
 const menuItems = document.querySelectorAll(".menu-item");
 let profilePostContainer = document.querySelector(".user-posts");
 let currentPage = 1;
-let myPostCurrentPage = 1;
-let formComment = document.querySelector(".comment-input");
-let btnsLike = document.querySelector(".uil-heart");
-let btnsComment = document.querySelectorAll(".uil-comment-dots");
-let btnsShare = document.querySelectorAll(".uil-share-alt");
 let currPostImgSrc = "";
-let currProfileImgSrc = "";
 let currentUser;
 let currPage = 1;
 let currPath = `/api/feed?page=${currPage}`;
@@ -93,7 +87,7 @@ async function loadFeedPosts(path, userId, isMainFeed) {
     },
   });
   const data = await response.json();
-  updateUserProfile(data.user);
+  updateUserProfile(data.user, data.userHtml);
   addUniquePosts(data, isMainFeed);
 }
 
@@ -139,7 +133,7 @@ window.addEventListener("scroll", () => {
 });
 // <=========================== USER-PROFILE ===========================> //
 
-function updateUserProfile(user) {
+function updateUserProfile(user, userProfileHtml) {
   const isProfileLoaded = document.querySelector(".container-profile");
   if (!user) {
     return null;
@@ -149,43 +143,7 @@ function updateUserProfile(user) {
       return null;
     }
   }
-  const html = `<div class="container-profile" id=${user.userID}>
-  <div class="container mt-5 mb-5">
-  <div class="row no-gutters">
-      <div class="col-md-4 col-lg-4"><img src=${user.img}></div>
-      <div class="col-md-8 col-lg-8 profile-right">
-          <div class="d-flex flex-column">
-              <div class="d-flex flex-row justify-content-between align-items-center p-5 text-white top">
-                  <h3 class="display-5 profile-name">${user.name}</h3><i class="fa fa-facebook"></i><i class="fa fa-google"></i><i class="fa fa-youtube-play"></i><i class="fa fa-dribbble"></i><i class="fa fa-linkedin"></i></div>
-              <div class="p-3 text-white profile-surfing-at">
-                  <h6><b>📌Main Surfing Location: <span style="color: #68a2b6">${user.country}</span></b></h6>
-              </div>
-              <div class="d-flex flex-row text-white">
-                  <div class="p-3 bg-primary text-center skill-block">
-                      <h4 class="profile-friends">${user.friends.length}</h4>
-                      <h6>Friends</h6>
-                  </div>
-                  <div class="p-3 bg-success text-center skill-block">
-                      <h4 class="profile-likes">${user.likeCount}</h4>
-                      <h6>Likes</h6>
-                  </div>
-                  <div class="p-3 bg-warning text-center skill-block">
-                      <h4 class="profile-posts">${user.postCount}</h4>
-                      <h6>Posts</h6>
-                  </div>
-                  <div class="profile-years-surfing p-3 bg-danger text-center skill-block">
-                      <h4>${user.yearsSurfing}</h4>
-                      <h6>Surfing</h6>
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </div>
-    </div>
-    </div>
-    <div class="user-posts">
-  </div>`;
-  profileContainer.innerHTML = html;
+  profileContainer.innerHTML = userProfileHtml;
 }
 // <=========================== LOGIN MODAL ===========================> //
 
@@ -340,9 +298,8 @@ sidebarProfile.addEventListener("click", async function (e) {
   moveToUserProfile();
   if (
     currentUser &&
-    !isProfileLoaded.getAttribute("id") != currentUser.userID
+    !isProfileLoaded?.getAttribute("id") != currentUser.userID
   ) {
-    updateUserProfile(currentUser);
     isMainFeed = false;
     currPath = `/api/my-profile`;
     loadFeedPosts(currPath, currUserid, isMainFeed);
@@ -406,7 +363,6 @@ createPostDiv.addEventListener("click", function (e) {
       .then((response) => response.json())
       .then((html) => {
         feedContainer.insertAdjacentHTML("afterbegin", html);
-        location.reload();
       });
   }
 });
@@ -465,11 +421,9 @@ function commentPost(post) {
     .then((response) => response.json())
     .then((html) => {
       post.outerHTML = html;
-      post.querySelector(".comments").classList.remove("hidden");
-      post.querySelector(".comment-input").classList.remove("hidden");
-      console.log(post.querySelector(".comment-input img"));
-      post.querySelector(".comment-input img").src = currentUser?.img;
-      console.log(post.querySelector(".comment-input img"));
+
+      const newPostElement = document.querySelector(`#${postID}`);
+      newPostElement.querySelector(".comment-input img").src = currentUser?.img;
     });
 }
 
@@ -488,6 +442,7 @@ function goToUser(userId) {
   isMainFeed = false;
   moveToUserProfile();
   loadFeedPosts(currPath, currUserid, isMainFeed);
+  changeActive();
 }
 feedContainer.addEventListener("click", async function (e) {
   e.preventDefault();
@@ -497,7 +452,10 @@ feedContainer.addEventListener("click", async function (e) {
 
   // LIKE //
   if (e.target.classList.contains("uil-heart")) {
-    // const targetPost = e.target.closest(".feed");
+    if (!currentUser) {
+      window.alert("Login to engage with posts");
+      return;
+    }
     const postId = post.getAttribute("id");
     if (!e.target.classList.contains("btn-active")) {
       likePost(e.target, post);
@@ -508,6 +466,10 @@ feedContainer.addEventListener("click", async function (e) {
 
   // COMMENTS //
   if (e.target.classList.contains("uil-comment-dots")) {
+    if (!currentUser) {
+      window.alert("Login to engage with posts");
+      return;
+    }
     openCommentSection(commentInput, commentSection);
     post.querySelector(".view-comments").classList.add("hidden");
   }
@@ -527,15 +489,50 @@ feedContainer.addEventListener("click", async function (e) {
   }
 });
 
-// MY POSTS //
+async function followUser(target) {
+  const profile = target.closest(".container-profile");
+  const userID = profile.getAttribute("id");
+  fetch("/follow", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userID }),
+  })
+    .then((response) => response.json())
+    .then((newCount) => {
+      profile.querySelector(".followersCount h3").textContent = newCount;
+      const followState = profile.querySelector("a.follow");
+      followState.classList.remove("follow");
+      followState.classList.add("unfollow");
+      followState.textContent = "Following";
+    });
+}
+async function unfollowUser(target) {
+  const profile = target.closest(".container-profile");
+  const userID = profile.getAttribute("id");
+  fetch("/unfollow", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userID }),
+  })
+    .then((response) => response.json())
+    .then((newCount) => {
+      profile.querySelector(".followersCount h3").textContent = newCount;
+      const followState = profile.querySelector("a.unfollow");
+      followState.classList.remove("unfollow");
+      followState.classList.add("follow");
+      followState.textContent = "Follow";
+    });
+}
+// USER PROFILE //
 profileContainer.addEventListener("click", async function (e) {
   e.preventDefault();
-  const post = e.target.closest(".feed");
-  const commentSection = post.querySelector(".comments");
-  const commentInput = post.querySelector(".comment-input");
-
   // LIKE //
   if (e.target.classList.contains("uil-heart")) {
+    const post = e.target.closest(".feed");
     const postId = post.getAttribute("id");
     if (!e.target.classList.contains("btn-active")) {
       likePost(e.target, post);
@@ -545,23 +542,39 @@ profileContainer.addEventListener("click", async function (e) {
   }
   // COMMENTS //
   if (e.target.classList.contains("uil-comment-dots")) {
+    const post = e.target.closest(".feed");
+    const commentSection = post.querySelector(".comments");
+    const commentInput = post.querySelector(".comment-input");
     openCommentSection(commentInput, commentSection);
     post.querySelector(".view-comments").classList.add("hidden");
   }
   if (e.target.classList.contains("post-click")) {
+    const post = e.target.closest(".feed");
     commentPost(post);
   }
   if (e.target.classList.contains("view-comments")) {
+    const post = e.target.closest(".feed");
+    const commentSection = post.querySelector(".comments");
+    const commentInput = post.querySelector(".comment-input");
     openCommentSection(commentInput, commentSection);
     e.target.classList.add("hidden");
   }
   if (e.target.classList.contains("hide-comments")) {
+    const post = e.target.closest(".feed");
+    const commentSection = post.querySelector(".comments");
+    const commentInput = post.querySelector(".comment-input");
     closeCommentSection(commentInput, commentSection);
     post.querySelector(".view-comments").classList.remove("hidden");
   }
   // GO TO USER //
   if (e.target.classList.contains("user-click")) {
     goToUser(e.target.getAttribute("id"));
+  }
+  if (e.target.classList.contains("follow")) {
+    followUser(e.target);
+  }
+  if (e.target.classList.contains("unfollow")) {
+    unfollowUser(e.target);
   }
 });
 

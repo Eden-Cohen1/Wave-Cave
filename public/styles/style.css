@@ -1,6 +1,8 @@
 :root {
   /* --main-color: #a7ecee; */
-  --main-color: #a7eceec9;
+  --main-color: #75a8aa;
+  /* --main-color: #1e8fffce; */
+
   --main-color-opacity: hsla(182, 68%, 79%, 0.404);
   --bg-color: #1f2020;
 }

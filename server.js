@@ -73,6 +73,46 @@ app.use(json());
 
 // <=========================== HELPER FUNCTIONS ===========================> //
 
+async function follow(userID) {
+  const followedUser = await User.findOne({
+    userID: userID,
+  })
+    .populate([
+      { path: "followers", model: "User" },
+      { path: "following", model: "User" },
+    ])
+    .exec();
+  followedUser.followers.push(currentUser);
+  currentUser.following.push(followedUser);
+  await followedUser.save();
+  await currentUser.save();
+  return followedUser.followers.length;
+}
+async function unFollow(userID) {
+  const unfollowedUser = await User.findOne({
+    userID: userID,
+  })
+    .populate([
+      { path: "followers", model: "User" },
+      { path: "following", model: "User" },
+    ])
+    .exec();
+  let indexToRemove = unfollowedUser.followers.findIndex(
+    (user) => user.userID === currentUser.userID
+  );
+  if (indexToRemove !== -1) {
+    unfollowedUser.followers.splice(indexToRemove, 1);
+    await unfollowedUser.save();
+  }
+  indexToRemove = currentUser.following.findIndex(
+    (user) => user.userID == unfollowedUser.userID
+  );
+  if (indexToRemove !== -1) {
+    currentUser.following.splice(indexToRemove, 1);
+    await currentUser.save();
+  }
+  return unfollowedUser.followers.length;
+}
 async function getPostsByUser(userID) {
   return await Post.find({ "user.userID": userID })
     .sort({ createdAt: -1 })
@@ -200,26 +240,43 @@ app.get("/api/my-profile", async (req, res) => {
     return { html: html, id: post.id, user: currentUser };
   });
   const user = currentUser;
-  res.json({ postHtmlList, user });
+  const userHtml = user.generateProfileHtml(true);
+  res.json({ postHtmlList, user, userHtml });
 });
 
 // <============ USER-PROFILE ============> //
 app.get("/api/profile", async (req, res) => {
   const userId = req.headers.authorization.split(" ")[1];
   const posts = await getPostsByUser(userId);
-  const user = await findUserById(userId);
+  const user = await User.findOne({
+    userID: userId,
+  })
+    .populate([
+      { path: "followers", model: "User" },
+      { path: "following", model: "User" },
+    ])
+    .exec();
+  const isFollow = user.followers.includes(currentUser._id);
   const postHtmlList = posts.map((post) => {
     let liked = isContainUser(post.likes, currentUser);
     const html = post.generateHtml(liked);
     return { html: html, id: post.id, user: currentUser };
   });
-  res.json({ postHtmlList, user });
+  const userHtml = user.generateProfileHtml(false, isFollow);
+  res.json({ postHtmlList, user, userHtml });
 });
 // <============ RE_LOGIN/REFRESH ============> //
 app.get("/user", async (req, res) => {
   try {
     const userId = req.headers.authorization.split(" ")[1];
-    const user = await findUserById(userId);
+    const user = await User.findOne({
+      userID: userId,
+    })
+      .populate([
+        { path: "followers", model: "User" },
+        { path: "following", model: "User" },
+      ])
+      .exec();
     if (!user) {
       currentUser = null;
       return res.status(404).json({ message: "User not found" });
@@ -311,6 +368,19 @@ app.post("/unlike", async (req, res) => {
   res.json(response);
 });
 
+// <============ FOLLOW ============> //
+app.post("/follow", async (req, res) => {
+  const { userID } = req.body;
+  const newFollowersCount = await follow(userID);
+  res.json(newFollowersCount);
+});
+// <============ UNFOLLOW ============> //
+
+app.post("/unfollow", async (req, res) => {
+  const { userID } = req.body;
+  const newFollowersCount = await unFollow(userID);
+  res.json(newFollowersCount);
+});
 // <=========================== 404 ===========================> //
 app.all("*", (req, res) => {
   res.status(404).sendFile(join(currentDir, "views", "404.html"));
