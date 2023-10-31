@@ -17,6 +17,10 @@ import {
   findUser,
   findUserById,
 } from "./public/db/models/user.js";
+import { router as userRoute } from "./routes/User.js";
+import { router as postsRoute } from "./routes/Posts.js";
+import { router as engagementRoute } from "./routes/Engagement.js";
+import { router as newsRoute } from "./routes/News.js";
 import { Post, createPost } from "./public/db/models/post.js";
 config();
 connectDB();
@@ -50,9 +54,7 @@ const storage = multer.diskStorage({
     cb(null, file.originalname); // Set the file name to the original name
   },
 });
-const upload = multer({ storage: storage });
-export let currentUser;
-currentUser = new User();
+export const upload = multer({ storage: storage });
 app.use(cors(corsOptions));
 app.use(
   session({
@@ -69,7 +71,10 @@ app.use(express.static(join(currentDir, "/public")));
 app.use("/uploads", express.static("uploads"));
 app.use(urlencoded({ extended: false }));
 app.use(json());
-
+app.use("/user", userRoute);
+app.use("/posts", postsRoute);
+app.use("/engage", engagementRoute);
+app.use("/news", newsRoute);
 // <=========================== HELPER FUNCTIONS ===========================> //
 
 const setCurrentUser = async (req, res, next) => {

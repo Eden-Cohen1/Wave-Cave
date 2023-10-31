@@ -1,6 +1,9 @@
-import { generateForecast } from "./public/js/forecast.js";
-import { fetchArticles, wrapArticles, lastAPIcall } from "./public/js/news.js";
-app.get("/news", async (req, res) => {
+import { generateForecast } from "../public/js/forecast.js";
+import { fetchArticles, wrapArticles, lastAPIcall } from "../public/js/news.js";
+import express from "express";
+
+export const router = express.Router();
+router.get("/news", async (req, res) => {
   UpdateForecastDB();
   const articles = await fetchAndProccessArticles();
   res.json(articles);

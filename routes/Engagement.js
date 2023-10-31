@@ -1,7 +1,10 @@
-import { createComment } from "./public/db/models/comment.js";
+import { createComment } from "../public/db/models/comment.js";
 import { isContainUser } from "../server.js";
+import express from "express";
+
+export const router = express.Router();
 // FUNCTIONS
-async function unlikePost(post) {
+async function unlikePost(post, currentUser) {
   if (isContainUser(post.likes, currentUser)) {
     const indexToRemove = post.likes.findIndex(
       (user) => user.userID == currentUser.userID
@@ -18,7 +21,7 @@ async function unlikePost(post) {
     return null;
   }
 }
-async function likePost(post) {
+async function likePost(post, currentUser) {
   if (isContainUser(post.likes, currentUser)) {
     return null;
   } else {
@@ -30,7 +33,7 @@ async function likePost(post) {
     return html;
   }
 }
-async function follow(userID) {
+async function follow(userID, currentUser) {
   const followedUser = await User.findOne({
     userID: userID,
   })
@@ -45,7 +48,7 @@ async function follow(userID) {
   await currentUser.save();
   return followedUser.followers.length;
 }
-async function unFollow(userID) {
+async function unFollow(userID, currentUser) {
   const unfollowedUser = await User.findOne({
     userID: userID,
   })
@@ -93,7 +96,8 @@ async function getPost(postId) {
     .exec();
 }
 // <============ COMMENT ============> //
-app.post("/comment", async (req, res) => {
+router.post("/comment", async (req, res) => {
+  const currentUser = req.session.user;
   const { text, postId } = req.body;
   const comment = await createComment(text, currentUser);
   const post = await getPost(postId);
@@ -106,31 +110,35 @@ app.post("/comment", async (req, res) => {
 });
 
 // <============ LIKE ============> //
-app.post("/like", async (req, res) => {
+router.post("/like", async (req, res) => {
+  const currentUser = req.session.user;
   const { postId } = req.body;
   const post = await getPost(postId);
-  const response = await likePost(post);
+  const response = await likePost(post, currentUser);
   res.json(response);
 });
 
 // <============ UNLIKE ============> //
-app.post("/unlike", async (req, res) => {
+router.post("/unlike", async (req, res) => {
+  const currentUser = req.session.user;
   const { postId } = req.body;
   const post = await getPost(postId);
-  const response = await unlikePost(post);
+  const response = await unlikePost(post, currentUser);
   res.json(response);
 });
 
 // <============ FOLLOW ============> //
-app.post("/follow", async (req, res) => {
+router.post("/follow", async (req, res) => {
+  const currentUser = req.session.user;
   const { userID } = req.body;
-  const newFollowersCount = await follow(userID);
+  const newFollowersCount = await follow(userID, currentUser);
   res.json(newFollowersCount);
 });
 // <============ UNFOLLOW ============> //
 
-app.post("/unfollow", async (req, res) => {
+router.post("/unfollow", async (req, res) => {
+  const currentUser = req.session.user;
   const { userID } = req.body;
-  const newFollowersCount = await unFollow(userID);
+  const newFollowersCount = await unFollow(userID, currentUser);
   res.json(newFollowersCount);
 });

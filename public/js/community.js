@@ -42,25 +42,11 @@ btnLogo.addEventListener("click", () => {
 
 // <=========================== REFRESH ===========================> //
 
-function checkLoggedIn() {
-  const storedSession = localStorage.getItem("sessionData");
-  if (storedSession) {
-    return JSON.parse(storedSession);
-  }
-  return null; // User is not logged in
-}
-
 async function getUserData() {
-  const userInfo = checkLoggedIn();
-  if (!userInfo) {
-    console.log("user not logged in");
-    return;
-  }
   const response = await fetch("/user", {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${userInfo.userId}`,
     },
   });
 
@@ -69,6 +55,9 @@ async function getUserData() {
   }
 
   const userData = await response.json();
+  if (!userData) {
+    return;
+  }
   currentUser = userData;
   updateUser(userData);
 }

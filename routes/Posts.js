@@ -1,3 +1,8 @@
+import { Post, createPost } from "../public/db/models/post.js";
+import { User } from "../public/db/models/user.js";
+import express from "express";
+
+export const router = express.Router();
 const PAGE_SIZE = 5;
 //FUNCTIONS
 async function getPostsByUser(userID) {
@@ -15,7 +20,8 @@ async function getPostsByUser(userID) {
     .exec();
 }
 
-app.get("/api/feed", async (req, res) => {
+router.get("/api/feed", async (req, res) => {
+  const currentUser = req.session.user;
   const page = req.query.page || 1;
   const posts = await Post.find()
     .sort({ createdAt: -1 })
@@ -36,12 +42,15 @@ app.get("/api/feed", async (req, res) => {
     const html = post.generateHtml(liked);
     return { html: html, id: post.id };
   });
-  const user = currentUser;
-  res.json({ postHtmlList, user });
+  res.json({ postHtmlList, user: currentUser });
 });
 
 // <============ MY-POSTS ============> //
-app.get("/api/my-profile", async (req, res) => {
+router.get("/api/my-profile", async (req, res) => {
+  if (!req.session.authorized) {
+    res.json(null);
+  }
+  const currentUser = req.session.user;
   const posts = await getPostsByUser(currentUser.userID);
   const postHtmlList = posts.map((post) => {
     let liked = isContainUser(post.likes, currentUser);
@@ -53,7 +62,11 @@ app.get("/api/my-profile", async (req, res) => {
   res.json({ postHtmlList, user, userHtml });
 });
 
-app.get("/api/profile", async (req, res) => {
+router.get("/api/profile", async (req, res) => {
+  if (!req.session.authorized) {
+    res.json(null);
+  }
+  const currentUser = req.session.user;
   const userId = req.headers.authorization.split(" ")[1];
   const posts = await getPostsByUser(userId);
   const user = await User.findOne({
@@ -74,7 +87,11 @@ app.get("/api/profile", async (req, res) => {
   res.json({ postHtmlList, user, userHtml });
 });
 
-app.post("/Post", upload.single("postImage"), async (req, res) => {
+router.post("/Post", upload.single("postImage"), async (req, res) => {
+  if (!req.session.authorized) {
+    res.json(null);
+  }
+  const currentUser = req.session.user;
   const { postBody } = req.body;
   const imgPath = req.body.imgName ? `./uploads/${req.body.imgName}` : "";
   const post = await createPost(currentUser, postBody, imgPath);
