@@ -1,5 +1,7 @@
 import { createComment } from "../public/db/models/comment.js";
 import { isContainUser } from "../server.js";
+import { findUserById, User } from "../public/db/models/user.js";
+import { Post } from "../public/db/models/post.js";
 import express from "express";
 
 export const router = express.Router();
@@ -11,8 +13,8 @@ async function unlikePost(post, currentUser) {
     );
     if (indexToRemove !== -1) {
       post.likes.splice(indexToRemove, 1);
-      currentUser.likeCount--;
-      await currentUser.save();
+      post.user.likeCount--;
+      await post.user.save();
     }
     await post.save();
     const html = post.generateHtml();
@@ -26,22 +28,15 @@ async function likePost(post, currentUser) {
     return null;
   } else {
     post.likes.push(currentUser);
-    currentUser.likeCount++;
-    await currentUser.save();
+    post.user.likeCount++;
+    await post.user.save();
     await post.save();
     const html = post.generateHtml(true);
     return html;
   }
 }
 async function follow(userID, currentUser) {
-  const followedUser = await User.findOne({
-    userID: userID,
-  })
-    .populate([
-      { path: "followers", model: "User" },
-      { path: "following", model: "User" },
-    ])
-    .exec();
+  const followedUser = await findUserById(userID);
   followedUser.followers.push(currentUser);
   currentUser.following.push(followedUser);
   await followedUser.save();
@@ -49,14 +44,7 @@ async function follow(userID, currentUser) {
   return followedUser.followers.length;
 }
 async function unFollow(userID, currentUser) {
-  const unfollowedUser = await User.findOne({
-    userID: userID,
-  })
-    .populate([
-      { path: "followers", model: "User" },
-      { path: "following", model: "User" },
-    ])
-    .exec();
+  const unfollowedUser = await findUserById(userID);
   let indexToRemove = unfollowedUser.followers.findIndex(
     (user) => user.userID === currentUser.userID
   );
@@ -86,6 +74,7 @@ async function populatePost(post) {
 async function getPost(postId) {
   return await Post.findOne({ id: postId })
     .populate([
+      { path: "user", model: "User" },
       { path: "likes", model: "User" },
       {
         path: "comments",
@@ -97,7 +86,7 @@ async function getPost(postId) {
 }
 // <============ COMMENT ============> //
 router.post("/comment", async (req, res) => {
-  const currentUser = req.session.user;
+  const currentUser = await findUserById(req.session.userID);
   const { text, postId } = req.body;
   const comment = await createComment(text, currentUser);
   const post = await getPost(postId);
@@ -111,7 +100,7 @@ router.post("/comment", async (req, res) => {
 
 // <============ LIKE ============> //
 router.post("/like", async (req, res) => {
-  const currentUser = req.session.user;
+  const currentUser = await findUserById(req.session.userID);
   const { postId } = req.body;
   const post = await getPost(postId);
   const response = await likePost(post, currentUser);
@@ -120,7 +109,7 @@ router.post("/like", async (req, res) => {
 
 // <============ UNLIKE ============> //
 router.post("/unlike", async (req, res) => {
-  const currentUser = req.session.user;
+  const currentUser = await findUserById(req.session.userID);
   const { postId } = req.body;
   const post = await getPost(postId);
   const response = await unlikePost(post, currentUser);
@@ -129,7 +118,7 @@ router.post("/unlike", async (req, res) => {
 
 // <============ FOLLOW ============> //
 router.post("/follow", async (req, res) => {
-  const currentUser = req.session.user;
+  const currentUser = await findUserById(req.session.userID);
   const { userID } = req.body;
   const newFollowersCount = await follow(userID, currentUser);
   res.json(newFollowersCount);
@@ -137,7 +126,7 @@ router.post("/follow", async (req, res) => {
 // <============ UNFOLLOW ============> //
 
 router.post("/unfollow", async (req, res) => {
-  const currentUser = req.session.user;
+  const currentUser = await findUserById(req.session.userID);
   const { userID } = req.body;
   const newFollowersCount = await unFollow(userID, currentUser);
   res.json(newFollowersCount);

@@ -1,5 +1,8 @@
 import { generateForecast } from "../public/js/forecast.js";
 import { fetchArticles, wrapArticles, lastAPIcall } from "../public/js/news.js";
+import { writeFile, readFileSync } from "fs";
+import { join } from "path";
+import { currentDir } from "../server.js";
 import express from "express";
 
 export const router = express.Router();
