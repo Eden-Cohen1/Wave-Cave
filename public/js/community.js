@@ -34,6 +34,7 @@ let currPage = 1;
 let currPath = `/api/feed?page=${currPage}`;
 let currUserid = "none";
 let isMainFeed = true;
+let noPostLeft = false;
 loadFeedPosts(currPath, currUserid, isMainFeed);
 
 btnLogo.addEventListener("click", () => {
@@ -42,25 +43,11 @@ btnLogo.addEventListener("click", () => {
 
 // <=========================== REFRESH ===========================> //
 
-function checkLoggedIn() {
-  const storedSession = localStorage.getItem("sessionData");
-  if (storedSession) {
-    return JSON.parse(storedSession);
-  }
-  return null; // User is not logged in
-}
-
 async function getUserData() {
-  const userInfo = checkLoggedIn();
-  if (!userInfo) {
-    console.log("user not logged in");
-    return;
-  }
   const response = await fetch("/user", {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${userInfo.userId}`,
     },
   });
 
@@ -69,9 +56,26 @@ async function getUserData() {
   }
 
   const userData = await response.json();
+  if (!userData) {
+    console.log(userData);
+    return;
+  }
   currentUser = userData;
   updateUser(userData);
 }
+// window.addEventListener("beforeunload", function (e) {
+//   localStorage.setItem(
+//     "lastHTML",
+//     JSON.stringify(document.querySelector("body").html)
+//   );
+// });
+// document.addEventListener("DOMContentLoaded", function () {
+//   const savedHtml = JSON.parse(localStorage.getItem("lastHTML"));
+//   if (savedHtml) {
+//     document.querySelector("body").outerHTML = savedHtml;
+//   }
+// });
+
 // <=========================== LOAD-POSTS ===========================> //
 
 let loadedPostsSet = new Set();
@@ -79,6 +83,7 @@ async function loadFeedPosts(path, userId, isMainFeed) {
   if (!currentUser) {
     await getUserData();
   }
+  profileContainer.innerHTML = "";
   const response = await fetch(`${path}`, {
     method: "GET",
     headers: {
@@ -87,6 +92,11 @@ async function loadFeedPosts(path, userId, isMainFeed) {
     },
   });
   const data = await response.json();
+  if (!data.postHtmlList) {
+    noPostLeft = true;
+    console.log("no posts left");
+    return;
+  }
   updateUserProfile(data.user, data.userHtml);
   addUniquePosts(data, isMainFeed);
 }
@@ -125,9 +135,12 @@ window.addEventListener("scroll", () => {
   }
   if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
     if (isMainFeed) {
-      currPath = `/api/feed?page=${currPage}`;
-      console.log(currPath);
-      loadFeedPosts(currPath, currUserid, isMainFeed);
+      if (noPostLeft) {
+        return;
+      } else {
+        currPath = `/api/feed?page=${currPage}`;
+        loadFeedPosts(currPath, currUserid, isMainFeed);
+      }
     }
   }
 });
@@ -182,10 +195,11 @@ loginForm.addEventListener("submit", function (e) {
       currentUser = data.currentUser;
       updateUser(data.currentUser);
       closeModalLG();
-      const sessionData = {
-        userId: data.currentUser.userID,
-      };
-      localStorage.setItem("sessionData", JSON.stringify(sessionData));
+      location.reload();
+      // const sessionData = {
+      //   userId: data.currentUser.userID,
+      // };
+      // localStorage.setItem("sessionData", JSON.stringify(sessionData));
     });
 });
 
@@ -248,7 +262,6 @@ function previewProfileImg() {
 // <=========================== LOGOUT ===========================> //
 
 btnLogout.addEventListener("click", () => {
-  localStorage.removeItem("sessionData");
   const profilePohots = document.querySelectorAll(
     ".profile-photo.curr-user img"
   );
@@ -264,6 +277,7 @@ btnLogout.addEventListener("click", () => {
   btnSignup.classList.remove("hidden");
   profileContainer.classList.add("hidden");
   currentUser = null;
+  fetch("/logout", { method: "GET" });
   location.reload();
 });
 
@@ -281,13 +295,18 @@ menuItems.forEach((item) => {
   });
 });
 
-sidebarFeed.addEventListener("click", function () {
+sidebarFeed.addEventListener("click", async function () {
+  console.log(currentUser);
+  if (currentUser) {
+    createPostDiv.classList.remove("hidden");
+  } else {
+    await getUserData();
+    createPostDiv.classList.remove("hidden");
+  }
+  console.log(currentUser);
   newsContainer.classList.add("hidden");
   profileContainer.classList.add("hidden");
   feedContainer.classList.remove("hidden");
-  if (currentUser) {
-    createPostDiv.classList.remove("hidden");
-  }
   isMainFeed = true;
   currPath = `/api/feed?page=${currPage}`;
   loadFeedPosts(currPath, currUserid, isMainFeed);
@@ -303,6 +322,8 @@ sidebarProfile.addEventListener("click", async function (e) {
     isMainFeed = false;
     currPath = `/api/my-profile`;
     loadFeedPosts(currPath, currUserid, isMainFeed);
+  } else {
+    profileContainer.innerHTML = "";
   }
 });
 
@@ -326,8 +347,7 @@ function moveToUserProfile() {
 
 //preview img//
 const inputImg = document.querySelector("#inputImg");
-inputImg.addEventListener("change", previewFile);
-function previewFile() {
+inputImg.addEventListener("change", function (e) {
   const preview = document.querySelector("#previewImg");
   previewContainer.classList.remove("hidden");
   const file = document.querySelector("input[type=file]").files[0];
@@ -343,11 +363,12 @@ function previewFile() {
   } else {
     preview.src = "";
   }
-}
+});
+
 //post click//
 createPostDiv.addEventListener("click", function (e) {
-  e.preventDefault();
   if (e.target.classList.contains("post")) {
+    e.preventDefault();
     previewContainer.classList.add("hidden");
 
     const text = document.querySelector("#create-post");
@@ -428,7 +449,9 @@ function commentPost(post) {
 }
 
 function openCommentSection(input, section) {
-  input.classList.remove("hidden");
+  if (currentUser) {
+    input.classList.remove("hidden");
+  }
   section.classList.remove("hidden");
   input.querySelector('input[type="text"]').focus();
 }

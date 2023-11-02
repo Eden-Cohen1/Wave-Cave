@@ -3,7 +3,11 @@ import mongoose from "mongoose";
 import { generateKey } from "../../../server.js";
 import moment from "moment";
 const postSchema = new mongoose.Schema({
-  user: Object,
+  // user: Object,
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
   postText: String,
   time: {
     type: String,
@@ -49,26 +53,26 @@ postSchema.methods.generateHtml = function (
   } else if (this.likes.length == 1) {
     likeByHtml = `
     <span><img src=${this.likes[0]?.img} ></span>
-    <p>Liked by </b> ${this.likes[0].name}</p>`;
+    <p>Liked by </b> ${this.likes[0]?.name}</p>`;
   } else if (this.likes.length == 2) {
     likeByHtml = `            
-    <span><img src=${this.likes[this.likes.length - 1]?.img} ></span>
-    <span><img src=${this.likes[this.likes.length - 2]?.img} ></span>
+    <span><img src=${this.likes[this.likes?.length - 1]?.img} ></span>
+    <span><img src=${this.likes[this.likes?.length - 2]?.img} ></span>
     Liked by </b> ${this.likes[0]?.name} and 1 other</p>
     `;
   } else {
     likeByHtml = `0 likes`;
   }
-  const imgHtml = this.img ? `<img src=${this.img}>` : "";
-  const html = `<div class="feed" id="${this.id}">
+  const imgHtml = this.img ? `<img src=${this?.img}>` : "";
+  const html = `<div class="feed" id="${this?.id}">
         <div class="head">
-          <div class="user user-click" id=${this.user.userID}>
-            <div class="profile-photo user-click" id=${this.user.userID}>
-              <img class="user-click" id=${this.user.userID} src=${this.user.img}>
+          <div class="user user-click" id=${this?.user?.userID}>
+            <div class="profile-photo user-click" id=${this?.user?.userID}>
+              <img class="user-click" id=${this?.user?.userID} src=${this?.user?.img}>
             </div>
             <div class="info">
-              <h3>${this.user.name}</h3>
-              <small><b>${this.user.country}</b>, ${timeAgo}</small>
+              <h3>${this?.user.name}</h3>
+              <small><b>${this?.user.country}</b>, ${timeAgo}</small>
             </div>
           </div>
           <span class="edit">

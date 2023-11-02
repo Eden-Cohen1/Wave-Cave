@@ -18,11 +18,11 @@ const userSchema = new mongoose.Schema({
 });
 
 userSchema.methods.generateProfileHtml = function (
-  myProfile = false,
+  enableFollowButton = true,
   isFollower = false
 ) {
   let followState;
-  if (myProfile) {
+  if (!enableFollowButton) {
     followState = "";
   } else {
     followState = isFollower
@@ -93,7 +93,12 @@ export async function findUser(email, password) {
   const user = await User.findOne({
     email: email,
     password: password,
-  }).exec();
+  })
+    .populate([
+      { path: "followers", model: "User" },
+      { path: "following", model: "User" },
+    ])
+    .exec();
   if (!user) {
     console.log("User not found");
     return null;
@@ -105,7 +110,12 @@ export async function findUser(email, password) {
 export async function findUserById(id) {
   const user = await User.findOne({
     userID: id,
-  }).exec();
+  })
+    .populate([
+      { path: "followers", model: "User" },
+      { path: "following", model: "User" },
+    ])
+    .exec();
   if (!user) {
     console.log("User not found");
     return null;
