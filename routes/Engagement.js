@@ -2,10 +2,23 @@ import { createComment } from "../public/db/models/comment.js";
 import { isContainUser } from "../server.js";
 import { findUserById, User } from "../public/db/models/user.js";
 import { Post } from "../public/db/models/post.js";
+import { createNotification } from "../public/db/models/notification.js";
 import express from "express";
 
 export const router = express.Router();
 // FUNCTIONS
+async function addNotification(toUser, fromUser, actionText, gotoId) {
+  const notification = await createNotification(
+    toUser,
+    fromUser,
+    actionText,
+    gotoId
+  );
+  toUser.notifications.push(notification);
+  console.log(fromUser, "@@@@@@@@@@@@@");
+  console.log(toUser, "!!!!!!!");
+  await toUser.save();
+}
 async function unlikePost(post, currentUser) {
   if (isContainUser(post.likes, currentUser)) {
     const indexToRemove = post.likes.findIndex(
@@ -39,6 +52,12 @@ async function follow(userID, currentUser) {
   const followedUser = await findUserById(userID);
   followedUser.followers.push(currentUser);
   currentUser.following.push(followedUser);
+  addNotification(
+    followedUser,
+    currentUser,
+    "Started following you",
+    currentUser.userID
+  );
   await followedUser.save();
   await currentUser.save();
   return followedUser.followers.length;
@@ -95,6 +114,7 @@ router.post("/comment", async (req, res) => {
   await post.save();
   const isLiked = isContainUser(post.likes, currentUser);
   const html = post.generateHtml(isLiked, true);
+  addNotification(post.user, currentUser, "Commented on your post", postId);
   res.json(html);
 });
 
@@ -104,6 +124,7 @@ router.post("/like", async (req, res) => {
   const { postId } = req.body;
   const post = await getPost(postId);
   const response = await likePost(post, currentUser);
+  addNotification(post.user, currentUser, "Liked your post", postId);
   res.json(response);
 });
 

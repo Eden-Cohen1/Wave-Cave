@@ -10,6 +10,9 @@ const userSchema = new mongoose.Schema({
   dateJoined: String,
   userID: String,
   img: String,
+  notifications: [
+    { type: mongoose.Schema.Types.ObjectId, ref: "Notification" },
+  ],
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   likeCount: Number,
@@ -80,6 +83,7 @@ export async function createUser(
     dateJoined: new Date().toISOString().split("T")[0],
     userID: Math.floor(Date.now()).toString(),
     img: img,
+    notifications: [],
     followers: [],
     following: [],
     likeCount: 0,
@@ -95,6 +99,11 @@ export async function findUser(email, password) {
     password: password,
   })
     .populate([
+      {
+        path: "notifications",
+        model: "Notification",
+        populate: { path: "fromUser", model: "User" },
+      },
       { path: "followers", model: "User" },
       { path: "following", model: "User" },
     ])
@@ -112,6 +121,7 @@ export async function findUserById(id) {
     userID: id,
   })
     .populate([
+      { path: "notifications", model: "Notification" },
       { path: "followers", model: "User" },
       { path: "following", model: "User" },
     ])

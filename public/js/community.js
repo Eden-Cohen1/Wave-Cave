@@ -6,6 +6,8 @@ const loginForm = document.querySelector(".login__form");
 const sidebarNews = document.querySelector("#news");
 const sidebarFeed = document.querySelector("#feed");
 const sidebarProfile = document.querySelector("#my-profile");
+const sidebarNotifications = document.querySelector("#notifications");
+const notifPopup = document.querySelector(".left .notifications-popup");
 const btnLogo = document.querySelector(".logo-img");
 const btnSignup = document.querySelector(".signup");
 const btnLogin = document.querySelector(".login");
@@ -194,8 +196,13 @@ loginForm.addEventListener("submit", function (e) {
       }
       currentUser = data.currentUser;
       updateUser(data.currentUser);
+      const notifPopup = document.querySelector(".notifications-popup");
+      console.log(notifPopup, "@@@@@");
+      notifPopup.innerHTML = data.notifHtml;
+      console.log(notifPopup, "#####");
+      console.log(data.notifHtml, "!!!!!");
       closeModalLG();
-      location.reload();
+      // location.reload();
       // const sessionData = {
       //   userId: data.currentUser.userID,
       // };
@@ -203,6 +210,7 @@ loginForm.addEventListener("submit", function (e) {
     });
 });
 
+function updateNotifications(notifHtml) {}
 function updateUser(user) {
   const profilePohots = document.querySelectorAll(
     ".profile-photo.curr-user img"
@@ -307,12 +315,14 @@ sidebarFeed.addEventListener("click", async function () {
   newsContainer.classList.add("hidden");
   profileContainer.classList.add("hidden");
   feedContainer.classList.remove("hidden");
+  notifPopup.classList.add("hidden");
+
   isMainFeed = true;
   currPath = `/api/feed?page=${currPage}`;
   loadFeedPosts(currPath, currUserid, isMainFeed);
 });
 
-sidebarProfile.addEventListener("click", async function (e) {
+sidebarProfile.addEventListener("click", async function () {
   const isProfileLoaded = document.querySelector(".container-profile");
   moveToUserProfile();
   if (
@@ -327,11 +337,20 @@ sidebarProfile.addEventListener("click", async function (e) {
   }
 });
 
+sidebarNotifications.addEventListener("click", async function () {
+  if (notifPopup.classList.contains("hidden")) {
+    notifPopup.classList.remove("hidden");
+  } else {
+    notifPopup.classList.add("hidden");
+    sidebarNotifications.classList.remove("active");
+  }
+});
 sidebarNews.addEventListener("click", function () {
   newsContainer.classList.remove("hidden");
   profileContainer.classList.add("hidden");
   feedContainer.classList.add("hidden");
   createPostDiv.classList.add("hidden");
+  notifPopup.classList.add("hidden");
   updateNews();
 });
 
@@ -340,6 +359,7 @@ function moveToUserProfile() {
   feedContainer.classList.add("hidden");
   newsContainer.classList.add("hidden");
   createPostDiv.classList.add("hidden");
+  notifPopup.classList.add("hidden");
 }
 //-----------------------------------------------------------------------
 
