@@ -130,12 +130,7 @@ export async function createPost(currentUser, postBody, postImg) {
     img: postImg,
     time: new Date().toLocaleString(),
   });
-  try {
-    return await post.save();
-  } catch (err) {
-    console.error("Error Posting:", err);
-    throw err;
-  }
+  return await post.save();
 }
 
 function generateCommentHtml(comment) {
@@ -155,7 +150,7 @@ function generateCommentHtml(comment) {
   return html;
 }
 
-function generateTime(object) {
+export function generateTime(object) {
   const objectDate = moment(object.createdAt);
   const currentDate = moment();
   const timeAgo = objectDate.from(currentDate);
