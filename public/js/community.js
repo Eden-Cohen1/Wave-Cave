@@ -1,4 +1,5 @@
 "use strict";
+
 const postForm = document.querySelector(".create-post");
 const createPostDiv = document.querySelector(".create-post-div");
 const signupForm = document.querySelector(".signup__form");
@@ -8,6 +9,7 @@ const sidebarFeed = document.querySelector("#feed");
 const sidebarProfile = document.querySelector("#my-profile");
 const sidebarNotifications = document.querySelector("#notifications");
 const notifPopup = document.querySelector(".left .notifications-popup");
+const singlePost = document.querySelector('.single-post')
 const btnLogo = document.querySelector(".logo-img");
 const btnSignup = document.querySelector(".signup");
 const btnLogin = document.querySelector(".login");
@@ -28,6 +30,7 @@ const containerMid = document.querySelector(".mid");
 const profileContainer = document.querySelector(".my-profile");
 const previewContainer = document.querySelector(".img-preview");
 const menuItems = document.querySelectorAll(".menu-item");
+const likesModal = document.querySelector('.users-modal')
 let profilePostContainer = document.querySelector(".user-posts");
 let currentPage = 1;
 let currPostImgSrc = "";
@@ -35,6 +38,7 @@ let currentUser;
 let currPage = 1;
 let currPath = `/api/feed?page=${currPage}`;
 let currUserid = "none";
+
 let isMainFeed = true;
 let noPostLeft = false;
 loadFeedPosts(currPath, currUserid, isMainFeed);
@@ -46,24 +50,20 @@ btnLogo.addEventListener("click", () => {
 // <=========================== REFRESH ===========================> //
 
 async function getUserData() {
-  const response = await fetch("/user", {
-    method: "GET",
+  await fetch("/user", {
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to retrieve user data");
-  }
-
-  const userData = await response.json();
-  if (!userData) {
-    console.log(userData);
-    return;
-  }
-  currentUser = userData;
-  updateUser(userData);
+  }).then(response => response.json()).then( userData =>{
+    if (!userData || !userData.user) {
+      return;
+    }
+    currentUser = userData.user;
+    const notifPopup = document.querySelector(".notifications-popup");
+    notifPopup.innerHTML = userData.notifHtml; 
+    updateUser(userData.user);
+  })
 }
 // window.addEventListener("beforeunload", function (e) {
 //   localStorage.setItem(
@@ -197,12 +197,9 @@ loginForm.addEventListener("submit", function (e) {
       currentUser = data.currentUser;
       updateUser(data.currentUser);
       const notifPopup = document.querySelector(".notifications-popup");
-      console.log(notifPopup, "@@@@@");
       notifPopup.innerHTML = data.notifHtml;
-      console.log(notifPopup, "#####");
-      console.log(data.notifHtml, "!!!!!");
       closeModalLG();
-      // location.reload();
+      location.reload();
       // const sessionData = {
       //   userId: data.currentUser.userID,
       // };
@@ -210,12 +207,10 @@ loginForm.addEventListener("submit", function (e) {
     });
 });
 
-function updateNotifications(notifHtml) {}
 function updateUser(user) {
   const profilePohots = document.querySelectorAll(
     ".profile-photo.curr-user img"
   );
-  console.log(profilePohots);
   const handle = document.querySelector(".hashtag");
   const name = document.querySelector(".handle h4");
   const postHolder = document.querySelector(".create-post input");
@@ -311,11 +306,11 @@ sidebarFeed.addEventListener("click", async function () {
     await getUserData();
     createPostDiv.classList.remove("hidden");
   }
-  console.log(currentUser);
   newsContainer.classList.add("hidden");
   profileContainer.classList.add("hidden");
   feedContainer.classList.remove("hidden");
   notifPopup.classList.add("hidden");
+  singlePost.classList.add("hidden")
 
   isMainFeed = true;
   currPath = `/api/feed?page=${currPage}`;
@@ -351,6 +346,7 @@ sidebarNews.addEventListener("click", function () {
   feedContainer.classList.add("hidden");
   createPostDiv.classList.add("hidden");
   notifPopup.classList.add("hidden");
+  singlePost.classList.add("hidden")
   updateNews();
 });
 
@@ -360,6 +356,8 @@ function moveToUserProfile() {
   newsContainer.classList.add("hidden");
   createPostDiv.classList.add("hidden");
   notifPopup.classList.add("hidden");
+  singlePost.classList.add("hidden")
+
 }
 //-----------------------------------------------------------------------
 
@@ -464,13 +462,15 @@ function commentPost(post) {
       post.outerHTML = html;
 
       const newPostElement = document.querySelector(`#${postID}`);
-      newPostElement.querySelector(".comment-input img").src = currentUser?.img;
+      console.log(newPostElement.querySelector(".post-comment"));
+      newPostElement.querySelector(".post-comment img").src = currentUser?.img;
     });
 }
 
 function openCommentSection(input, section) {
   if (currentUser) {
     input.classList.remove("hidden");
+    input.querySelector('img').src = currentUser.img;
   }
   section.classList.remove("hidden");
   input.querySelector('input[type="text"]').focus();
@@ -487,50 +487,6 @@ function goToUser(userId) {
   loadFeedPosts(currPath, currUserid, isMainFeed);
   changeActive();
 }
-feedContainer.addEventListener("click", async function (e) {
-  e.preventDefault();
-  const post = e.target.closest(".feed");
-  const commentSection = post.querySelector(".comments");
-  const commentInput = post.querySelector(".comment-input");
-
-  // LIKE //
-  if (e.target.classList.contains("uil-heart")) {
-    if (!currentUser) {
-      window.alert("Login to engage with posts");
-      return;
-    }
-    const postId = post.getAttribute("id");
-    if (!e.target.classList.contains("btn-active")) {
-      likePost(e.target, post);
-    } else {
-      unlikePost(postId, post);
-    }
-  }
-
-  // COMMENTS //
-  if (e.target.classList.contains("uil-comment-dots")) {
-    if (!currentUser) {
-      window.alert("Login to engage with posts");
-      return;
-    }
-    openCommentSection(commentInput, commentSection);
-    post.querySelector(".view-comments").classList.add("hidden");
-  }
-  if (e.target.classList.contains("post-click")) {
-    commentPost(post);
-  }
-  if (e.target.classList.contains("view-comments")) {
-    openCommentSection(commentInput, commentSection);
-    e.target.classList.add("hidden");
-  }
-  if (e.target.classList.contains("hide-comments")) {
-    closeCommentSection(commentInput, commentSection);
-    post.querySelector(".view-comments").classList.remove("hidden");
-  }
-  if (e.target.classList.contains("user-click")) {
-    goToUser(e.target.getAttribute("id"));
-  }
-});
 
 async function followUser(target) {
   const profile = target.closest(".container-profile");
@@ -542,25 +498,25 @@ async function followUser(target) {
     },
     body: JSON.stringify({ userID }),
   })
-    .then((response) => response.json())
-    .then((newCount) => {
+  .then((response) => response.json())
+  .then((newCount) => {
       profile.querySelector(".followersCount h3").textContent = newCount;
       const followState = profile.querySelector("a.follow");
       followState.classList.remove("follow");
       followState.classList.add("unfollow");
       followState.textContent = "Following";
     });
-}
+  }
 async function unfollowUser(target) {
-  const profile = target.closest(".container-profile");
-  const userID = profile.getAttribute("id");
-  fetch("/unfollow", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ userID }),
-  })
+    const profile = target.closest(".container-profile");
+    const userID = profile.getAttribute("id");
+    fetch("/unfollow", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userID }),
+    })
     .then((response) => response.json())
     .then((newCount) => {
       profile.querySelector(".followersCount h3").textContent = newCount;
@@ -569,13 +525,46 @@ async function unfollowUser(target) {
       followState.classList.add("follow");
       followState.textContent = "Follow";
     });
-}
-// USER PROFILE //
-profileContainer.addEventListener("click", async function (e) {
-  e.preventDefault();
+  }
+
+function openLikesModal(postId){
+    fetch('/likes', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ postId }),
+    }).then(response => response.json())
+    .then(likes =>{
+      console.log(likes);
+      const likesLinks = document.querySelector('.user-links')
+      likesLinks.innerHTML = likes.html;
+      likesModal.classList.remove('hidden');
+    })
+  }
+likesModal.addEventListener('click', function(e){
+  e.preventDefault()
+  const userLink = e.target.closest('.user-click')
+  if(e.target.classList.contains('btn--close-modal')){
+    likesModal.classList.add('hidden')
+  }
+  if (userLink) {
+    console.log(userLink.getAttribute('id'));
+    goToUser(userLink.getAttribute("id"));
+  }
+})
+  // USER PROFILE //
+function postInteraction(e){
+    const post = e.target.closest(".feed");
+    const commentSection = post.querySelector(".comments");
+  const commentInput = post.querySelector(".comment-input");
+  
   // LIKE //
   if (e.target.classList.contains("uil-heart")) {
-    const post = e.target.closest(".feed");
+    if (!currentUser) {
+      window.alert("Login to engage with posts");
+      return;
+    }
     const postId = post.getAttribute("id");
     if (!e.target.classList.contains("btn-active")) {
       likePost(e.target, post);
@@ -583,44 +572,81 @@ profileContainer.addEventListener("click", async function (e) {
       unlikePost(postId, post);
     }
   }
+  
   // COMMENTS //
   if (e.target.classList.contains("uil-comment-dots")) {
-    const post = e.target.closest(".feed");
-    const commentSection = post.querySelector(".comments");
-    const commentInput = post.querySelector(".comment-input");
+    if (!currentUser) {
+      window.alert("Login to engage with posts");
+      return;
+    }
     openCommentSection(commentInput, commentSection);
     post.querySelector(".view-comments").classList.add("hidden");
   }
   if (e.target.classList.contains("post-click")) {
-    const post = e.target.closest(".feed");
     commentPost(post);
   }
   if (e.target.classList.contains("view-comments")) {
-    const post = e.target.closest(".feed");
-    const commentSection = post.querySelector(".comments");
-    const commentInput = post.querySelector(".comment-input");
     openCommentSection(commentInput, commentSection);
     e.target.classList.add("hidden");
   }
   if (e.target.classList.contains("hide-comments")) {
-    const post = e.target.closest(".feed");
-    const commentSection = post.querySelector(".comments");
-    const commentInput = post.querySelector(".comment-input");
     closeCommentSection(commentInput, commentSection);
     post.querySelector(".view-comments").classList.remove("hidden");
   }
-  // GO TO USER //
   if (e.target.classList.contains("user-click")) {
     goToUser(e.target.getAttribute("id"));
   }
-  if (e.target.classList.contains("follow")) {
-    followUser(e.target);
+  if(e.target.classList.contains("liked-by-modal")){
+    const postId = e.target.closest('.feed').getAttribute('id')
+    openLikesModal(postId)
   }
-  if (e.target.classList.contains("unfollow")) {
-    unfollowUser(e.target);
-  }
+}
+feedContainer.addEventListener("click", async function (e) {
+  e.preventDefault();
+  postInteraction(e)
+ 
+});
+profileContainer.addEventListener("click", async function (e) {
+  e.preventDefault();
+  postInteraction(e)
 });
 
+// <=========================== NOTIFICATIONS ===========================> //
+notifPopup.addEventListener('click', function(e) {
+  e.preventDefault();
+  const notif = e.target.closest('.notification')
+  if(notif){
+    if(notif.classList.contains("post")){
+      const postId = notif.getAttribute('id');
+      notifPopup.classList.add("hidden");
+      notificationPost(postId)
+    }
+    else if(notif.classList.contains('user-profile')){
+      const userId = notif.getAttribute('id')
+      notifPopup.classList.add("hidden");
+      goToUser(userId)
+    }
+  }
+})
+
+async function notificationPost(postId){
+  fetch("/api/post", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({postId}),
+  })
+    .then((response) => response.json())
+    .then((postHtml) => {
+      feedContainer.classList.add("hidden")
+      createPostDiv.classList.add("hidden")
+      singlePost.innerHTML = postHtml;
+      singlePost.classList.remove("hidden")
+      window.scrollTo(0,0)
+    });
+}
+//
 //READ-MORE (COMMENTS)
 const readMorePrefaceMaxLength = 120;
 const readMoreTexts = document.querySelectorAll(".read-more-text");

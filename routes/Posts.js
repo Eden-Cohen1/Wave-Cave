@@ -5,7 +5,19 @@ import express from "express";
 
 export const router = express.Router();
 const PAGE_SIZE = 5;
-
+async function getPost(postId) {
+  return await Post.findOne({ id: postId })
+    .populate([
+      { path: "user", model: "User" },
+      { path: "likes", model: "User" },
+      {
+        path: "comments",
+        model: "Comment",
+        populate: { path: "user", model: "User" },
+      },
+    ])
+    .exec();
+}
 //FUNCTIONS
 async function getPostsByUser(User) {
   return await Post.find({ user: User })
@@ -40,6 +52,7 @@ async function getFeed(page, currentUser) {
   if (posts.length > 0) {
     const postHtmlList = posts.map((post) => {
       let liked = isContainUser(post.likes, currentUser);
+      console.log(liked);
       const html = post.generateHtml(liked);
       return { html: html, id: post.id };
     });
@@ -52,7 +65,6 @@ router.get("/api/feed", async (req, res) => {
   const currentUser = await findUserById(req.session.userID);
   const page = req.query.page || 1;
   const postHtmlList = await getFeed(page, currentUser);
-  console.log(postHtmlList, "11111111111");
   res.json({ postHtmlList, user: currentUser });
 });
 
@@ -79,7 +91,6 @@ router.get("/api/profile", async (req, res) => {
   const targetUser = await findUserById(
     req.headers.authorization.split(" ")[1]
   );
-  console.log(targetUser, "@@@@@@@@@@@@@@@@@@@");
   const posts = await getPostsByUser(targetUser);
   const isFollow = targetUser.followers.includes(currentUser?._id);
   const postHtmlList = posts.map((post) => {
@@ -91,3 +102,12 @@ router.get("/api/profile", async (req, res) => {
   const userHtml = targetUser.generateProfileHtml(enableFollowBtn, isFollow);
   res.json({ postHtmlList, user: targetUser, userHtml });
 });
+
+router.post('/api/post', async(req, res) =>{
+  const currentUser = req.session.user;
+  const { postId } = req.body;
+  const post = await getPost(postId);
+  const isLiked = isContainUser(post.likes, currentUser)
+  const html = post.generateHtml(isLiked)
+  res.json(html)
+})

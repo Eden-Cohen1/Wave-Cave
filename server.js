@@ -8,6 +8,7 @@ import { join } from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import crypto from "crypto";
+import { Post } from "./public/db/models/post.js";
 import { router as userRoute } from "./routes/User.js";
 import { router as postsRoute } from "./routes/Posts.js";
 import { router as engagementRoute } from "./routes/Engagement.js";
@@ -46,21 +47,36 @@ app.use("/", uploadsRoute);
 
 // <=========================== HELPER FUNCTIONS ===========================> //
 
-export function isContainUser(userList, user) {
+export function isContainUser(userList, user) { 
+  let contain = false
   if (!user) {
-    return false;
+    return contain;
   }
-  for (let u of userList) {
-    if (u.userID == user.userID) {
-      return true;
+  userList.forEach(user_ => {
+    if(user_.userID == user.userID ){
+      contain = true;
     }
-  }
-  return false;
+  });
+  return contain
 }
 export function generateKey() {
   const key = crypto.randomBytes(16).toString("base64");
   const sanitizedKey = key.replace(/[^a-zA-Z0-9-]/g, "-");
   return sanitizedKey;
+}
+
+export async function getPost(postId) {
+  return await Post.findOne({ id: postId })
+    .populate([
+      { path: "user", model: "User" },
+      { path: "likes", model: "User" },
+      {
+        path: "comments",
+        model: "Comment",
+        populate: { path: "user", model: "User" },
+      },
+    ])
+    .exec();
 }
 
 // <============ MAIN ROUTES ============> //

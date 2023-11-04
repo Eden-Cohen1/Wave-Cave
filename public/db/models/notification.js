@@ -12,7 +12,7 @@ const notificationSchema = new mongoose.Schema({
     ref: "User",
   },
   text: String,
-  notificationType: String,
+  notifType: String,
   gotoId: String,
   createdAt: {
     type: Date,
@@ -22,7 +22,7 @@ const notificationSchema = new mongoose.Schema({
 
 notificationSchema.methods.generateHtml = function () {
   const timeAgo = generateTime(this);
-  const html = `<div class="notification">
+  const html = `<div class="notification ${this.notifType}" id=${this.gotoId}>
   <div class="profile-photo">
     <img src=${this.fromUser.img} alt="">
   </div>
@@ -35,16 +35,13 @@ notificationSchema.methods.generateHtml = function () {
 };
 export const Notification = mongoose.model("Notification", notificationSchema);
 
-export async function createNotification(toUser, fromUser, actionText, gotoId) {
+export async function createNotification(toUser, fromUser, actionText, gotoId, notifType) {
   const notification = new Notification({
     toUser: toUser,
     fromUser: fromUser,
     text: `${actionText}`,
+    notifType: `${notifType}`,
     gotoId: gotoId,
   });
-  console.log(
-    notification,
-    "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
-  );
   return await notification.save();
 }
