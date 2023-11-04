@@ -47,18 +47,18 @@ postSchema.methods.generateHtml = function (
             <span><img src=${this.likes[this.likes.length - 1]?.img} ></span>
             <span><img src=${this.likes[this.likes.length - 2]?.img} ></span>
             <span><img src=${this.likes[this.likes.length - 3]?.img} ></span>
-            <p> Liked by ${this.likes[this.likes.length - 1].name} and ${
+            <a class="liked-by-modal"> Liked by ${this.likes[this.likes.length - 1].name} and ${
       this.likes.length - 1
-    } others</p>`;
+    } others</a>`;
   } else if (this.likes.length == 1) {
     likeByHtml = `
     <span><img src=${this.likes[0]?.img} ></span>
-    <p>Liked by </b> ${this.likes[0]?.name}</p>`;
+    <a class="liked-by-modal">Liked by </b> ${this.likes[0]?.name}</a>`;
   } else if (this.likes.length == 2) {
     likeByHtml = `            
     <span><img src=${this.likes[this.likes?.length - 1]?.img} ></span>
     <span><img src=${this.likes[this.likes?.length - 2]?.img} ></span>
-    Liked by </b> ${this.likes[0]?.name} and 1 other</p>
+    <a class="liked-by-modal">Liked by </b> ${this.likes[0]?.name} and 1 other</a>
     `;
   } else {
     likeByHtml = `0 likes`;

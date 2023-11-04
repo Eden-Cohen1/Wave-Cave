@@ -72,7 +72,6 @@ export async function createUser(
   img,
   yearsSurfing
 ) {
-  console.log(yearsSurfing);
   const user = new User({
     name: name,
     country: country,
@@ -112,7 +111,6 @@ export async function findUser(email, password) {
     console.log("User not found");
     return null;
   }
-  console.log("Found user");
   return user;
 }
 
@@ -120,16 +118,18 @@ export async function findUserById(id) {
   const user = await User.findOne({
     userID: id,
   })
-    .populate([
-      { path: "notifications", model: "Notification" },
-      { path: "followers", model: "User" },
-      { path: "following", model: "User" },
-    ])
-    .exec();
+  .populate([
+    {
+      path: "notifications",
+      model: "Notification",
+      populate: { path: "fromUser", model: "User" },
+    },
+    { path: "followers", model: "User" },
+    { path: "following", model: "User" },
+  ])
+  .exec();
   if (!user) {
-    console.log("User not found");
     return null;
   }
-  console.log("Found user by id");
   return user;
 }

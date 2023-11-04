@@ -232,8 +232,6 @@ main {
 .articles {
   padding: 3%;
   display: grid;
-  /* grid-template-columns: 1fr, 1fr 1fr; */
-  /* grid-template-columns: 1fr, 1fr; */
   grid-template-columns: repeat(auto-fill, minmax(min(25rem, 100%), 1fr));
   grid-gap: 1rem;
 }
@@ -501,7 +499,7 @@ a.menu-item {
   border-radius: var(--card-border-radius);
   padding: var(--card-padding);
   border: 0.01rem solid var(--border-color);
-  z-index: 10;
+  z-index: 1000;
 }
 .left .notifications-popup::before {
   content: "";
@@ -528,6 +526,47 @@ a.menu-item {
 }
 .left .notifications-popup small {
   display: block;
+}
+/* <!-- =========================== USERS-LINK =========================== --> */
+.users-modal{
+position: fixed;
+top: 35%;
+left: 35%;
+width: 30rem;
+background-color: var(--lighter-bg-color);
+border-radius: var(--card-border-radius);
+padding: var(--card-padding);
+border: 0.01rem solid var(--border-color);
+z-index: 1000;
+}
+.users-modal h3{
+padding-bottom: 0.5rem;
+border-bottom: 1px solid var(--border-color);
+}
+
+
+.users-modal button{
+  font-size: 2rem !important;
+}
+.profile-link{
+  display: flex !important;
+  gap: 1rem ;
+}
+.profile-link h4{
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+}
+.users-modal .user-link {
+  display: flex;
+  align-items: start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  border-radius: var(--card-border-radius);
+  padding: 0.5rem;
+  cursor: pointer;
+}
+.users-modal .user-link:hover {
+  background-color: var(--bg-color);
 }
 /* <!-- =========================== MY-PROFILE =========================== --> */
 .user-posts {
@@ -579,6 +618,15 @@ a.menu-item {
 .mid .liked-by {
   display: flex;
 }
+.mid .liked-by a{
+  margin-left: 0.5rem;
+  color: aliceblue;
+  text-decoration: none;
+  cursor: pointer;
+}
+.mid .liked-by a:hover{
+  text-decoration: underline;
+}
 .mid .liked-by span {
   width: 1.4rem;
   height: 1.4rem;
@@ -594,9 +642,6 @@ a.menu-item {
   margin: 0;
 }
 
-.mid .liked-by p {
-  margin-left: 0.5rem;
-}
 .mid .feed .caption p {
   text-wrap: wrap;
 }
@@ -759,6 +804,12 @@ i.uil-share-alt:hover {
     grid-template-columns: repeat(auto-fill, minmax(min(20rem, 100%), 1fr));
     grid-gap: 1rem;
     width: 75rem;
+  }
+  .create-post-div{
+    max-width: 50rem;
+  }
+  .mid{
+    max-width: 55rem;
   }
 }
 
@@ -1015,6 +1066,7 @@ footer input {
   width: 100%;
   word-wrap: normal;
   background-color: var(--bg-color);
+  z-index: -10;
 }
 
 .my-profile .card-img-top {
