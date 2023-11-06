@@ -58,7 +58,7 @@ async function follow(userID, currentUser) {
     currentUser.userID,
     "user-profile"
   );
-  await followedUser.save();
+  console.log(followedUser.name, currentUser.name);
   await currentUser.save();
   return followedUser.followers.length;
 }
@@ -69,15 +69,16 @@ async function unFollow(userID, currentUser) {
   );
   if (indexToRemove !== -1) {
     unfollowedUser.followers.splice(indexToRemove, 1);
-    await unfollowedUser.save();
   }
   indexToRemove = currentUser.following.findIndex(
     (user) => user.userID == unfollowedUser.userID
   );
   if (indexToRemove !== -1) {
     currentUser.following.splice(indexToRemove, 1);
-    await currentUser.save();
   }
+  await currentUser.save();
+  await unfollowedUser.save();
+
   return unfollowedUser.followers.length;
 }
 async function populatePost(post) {
@@ -114,7 +115,13 @@ router.post("/comment", async (req, res) => {
   await post.save();
   const isLiked = isContainUser(post.likes, currentUser);
   const html = post.generateHtml(isLiked, true);
-  addNotification(post.user, currentUser, "Commented on your post", postId, "post");
+  addNotification(
+    post.user,
+    currentUser,
+    "Commented on your post",
+    postId,
+    "post"
+  );
   res.json(html);
 });
 

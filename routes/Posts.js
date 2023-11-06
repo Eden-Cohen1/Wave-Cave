@@ -92,7 +92,8 @@ router.get("/api/profile", async (req, res) => {
     req.headers.authorization.split(" ")[1]
   );
   const posts = await getPostsByUser(targetUser);
-  const isFollow = targetUser.followers.includes(currentUser?._id);
+  const isFollow = isContainUser(targetUser.followers, currentUser);
+  console.log(isFollow, "22222222222222222");
   const postHtmlList = posts.map((post) => {
     let liked = isContainUser(post.likes, currentUser);
     const html = post.generateHtml(liked);
@@ -103,11 +104,11 @@ router.get("/api/profile", async (req, res) => {
   res.json({ postHtmlList, user: targetUser, userHtml });
 });
 
-router.post('/api/post', async(req, res) =>{
+router.post("/api/post", async (req, res) => {
   const currentUser = req.session.user;
   const { postId } = req.body;
   const post = await getPost(postId);
-  const isLiked = isContainUser(post.likes, currentUser)
-  const html = post.generateHtml(isLiked)
-  res.json(html)
-})
+  const isLiked = isContainUser(post.likes, currentUser);
+  const html = post.generateHtml(isLiked);
+  res.json(html);
+});

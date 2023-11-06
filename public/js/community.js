@@ -9,7 +9,7 @@ const sidebarFeed = document.querySelector("#feed");
 const sidebarProfile = document.querySelector("#my-profile");
 const sidebarNotifications = document.querySelector("#notifications");
 const notifPopup = document.querySelector(".left .notifications-popup");
-const singlePost = document.querySelector('.single-post')
+const singlePost = document.querySelector(".single-post");
 const btnLogo = document.querySelector(".logo-img");
 const btnSignup = document.querySelector(".signup");
 const btnLogin = document.querySelector(".login");
@@ -25,12 +25,13 @@ const loginModal = document.querySelector(".login-modal");
 const modalOverlay = document.querySelector(".overlay-modal");
 const articleContainer = document.querySelector(".articles");
 const feedContainer = document.querySelector(".feeds");
+const mainContainer = document.querySelector("main");
 const newsContainer = document.querySelector(".news");
 const containerMid = document.querySelector(".mid");
 const profileContainer = document.querySelector(".my-profile");
 const previewContainer = document.querySelector(".img-preview");
 const menuItems = document.querySelectorAll(".menu-item");
-const likesModal = document.querySelector('.users-modal')
+const likesModal = document.querySelector(".users-modal");
 let profilePostContainer = document.querySelector(".user-posts");
 let currentPage = 1;
 let currPostImgSrc = "";
@@ -55,15 +56,17 @@ async function getUserData() {
     headers: {
       "Content-Type": "application/json",
     },
-  }).then(response => response.json()).then( userData =>{
-    if (!userData || !userData.user) {
-      return;
-    }
-    currentUser = userData.user;
-    const notifPopup = document.querySelector(".notifications-popup");
-    notifPopup.innerHTML = userData.notifHtml; 
-    updateUser(userData.user);
   })
+    .then((response) => response.json())
+    .then((userData) => {
+      if (!userData || !userData.user) {
+        return;
+      }
+      currentUser = userData.user;
+      const notifPopup = document.querySelector(".notifications-popup");
+      notifPopup.innerHTML = userData.notifHtml;
+      updateUser(userData.user);
+    });
 }
 // window.addEventListener("beforeunload", function (e) {
 //   localStorage.setItem(
@@ -200,10 +203,6 @@ loginForm.addEventListener("submit", function (e) {
       notifPopup.innerHTML = data.notifHtml;
       closeModalLG();
       location.reload();
-      // const sessionData = {
-      //   userId: data.currentUser.userID,
-      // };
-      // localStorage.setItem("sessionData", JSON.stringify(sessionData));
     });
 });
 
@@ -217,7 +216,10 @@ function updateUser(user) {
   const postSection = document.querySelector(".create-post");
   postSection.classList.remove("hidden");
   currentUser = user;
-  profilePohots.forEach((img) => (img.src = user.img));
+  profilePohots.forEach((img) => {
+    img.src = user.img;
+    img.id = user.userID;
+  });
   handle.textContent = `@${user.handle}`;
   name.textContent = user.name;
   postHolder.placeholder = `Share a surfing expirience, ${
@@ -310,7 +312,7 @@ sidebarFeed.addEventListener("click", async function () {
   profileContainer.classList.add("hidden");
   feedContainer.classList.remove("hidden");
   notifPopup.classList.add("hidden");
-  singlePost.classList.add("hidden")
+  singlePost.classList.add("hidden");
 
   isMainFeed = true;
   currPath = `/api/feed?page=${currPage}`;
@@ -346,7 +348,7 @@ sidebarNews.addEventListener("click", function () {
   feedContainer.classList.add("hidden");
   createPostDiv.classList.add("hidden");
   notifPopup.classList.add("hidden");
-  singlePost.classList.add("hidden")
+  singlePost.classList.add("hidden");
   updateNews();
 });
 
@@ -356,8 +358,7 @@ function moveToUserProfile() {
   newsContainer.classList.add("hidden");
   createPostDiv.classList.add("hidden");
   notifPopup.classList.add("hidden");
-  singlePost.classList.add("hidden")
-
+  singlePost.classList.add("hidden");
 }
 //-----------------------------------------------------------------------
 
@@ -461,16 +462,16 @@ function commentPost(post) {
     .then((html) => {
       post.outerHTML = html;
 
-      const newPostElement = document.querySelector(`#${postID}`);
-      console.log(newPostElement.querySelector(".post-comment"));
-      newPostElement.querySelector(".post-comment img").src = currentUser?.img;
+      const newPostElement = document.querySelector(`.feed #${postID} img`);
+      console.log(newPostElement);
+      newPostElement.src = currentUser?.img;
     });
 }
 
 function openCommentSection(input, section) {
   if (currentUser) {
     input.classList.remove("hidden");
-    input.querySelector('img').src = currentUser.img;
+    input.querySelector("img").src = currentUser.img;
   }
   section.classList.remove("hidden");
   input.querySelector('input[type="text"]').focus();
@@ -486,6 +487,7 @@ function goToUser(userId) {
   moveToUserProfile();
   loadFeedPosts(currPath, currUserid, isMainFeed);
   changeActive();
+  window.scrollTo(0, 0);
 }
 
 async function followUser(target) {
@@ -498,25 +500,25 @@ async function followUser(target) {
     },
     body: JSON.stringify({ userID }),
   })
-  .then((response) => response.json())
-  .then((newCount) => {
+    .then((response) => response.json())
+    .then((newCount) => {
       profile.querySelector(".followersCount h3").textContent = newCount;
       const followState = profile.querySelector("a.follow");
       followState.classList.remove("follow");
       followState.classList.add("unfollow");
       followState.textContent = "Following";
     });
-  }
+}
 async function unfollowUser(target) {
-    const profile = target.closest(".container-profile");
-    const userID = profile.getAttribute("id");
-    fetch("/unfollow", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userID }),
-    })
+  const profile = target.closest(".container-profile");
+  const userID = profile.getAttribute("id");
+  fetch("/unfollow", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userID }),
+  })
     .then((response) => response.json())
     .then((newCount) => {
       profile.querySelector(".followersCount h3").textContent = newCount;
@@ -525,46 +527,74 @@ async function unfollowUser(target) {
       followState.classList.add("follow");
       followState.textContent = "Follow";
     });
-  }
+}
 
-function openLikesModal(postId){
-    fetch('/likes', {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ postId }),
-    }).then(response => response.json())
-    .then(likes =>{
+function openLikesModal(postId) {
+  fetch("/likes", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ postId }),
+  })
+    .then((response) => response.json())
+    .then((likes) => {
       console.log(likes);
-      const likesLinks = document.querySelector('.user-links')
+      const likesLinks = document.querySelector(".user-links");
       likesLinks.innerHTML = likes.html;
-      likesModal.classList.remove('hidden');
-    })
-  }
-likesModal.addEventListener('click', function(e){
-  e.preventDefault()
-  const userLink = e.target.closest('.user-click')
-  if(e.target.classList.contains('btn--close-modal')){
-    likesModal.classList.add('hidden')
+      likesModal.querySelector("h3").textContent = "Likes";
+      likesModal.classList.remove("hidden");
+    });
+}
+
+function openFollowModal(userID, path) {
+  console.log(userID);
+  fetch(`/${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userID }),
+  })
+    .then((response) => response.json())
+    .then((follows) => {
+      console.log(follows);
+      const followsLinks = document.querySelector(".user-links");
+      followsLinks.innerHTML = follows.html;
+      likesModal.querySelector("h3").textContent =
+        path[0].toUpperCase() + path.slice(1);
+      likesModal.classList.remove("hidden");
+    });
+}
+likesModal.addEventListener("click", function (e) {
+  e.preventDefault();
+  const userLink = e.target.closest(".user-click");
+  if (e.target.classList.contains("btn--close-modal")) {
+    likesModal.classList.add("hidden");
   }
   if (userLink) {
-    console.log(userLink.getAttribute('id'));
+    console.log(userLink.getAttribute("id"));
     goToUser(userLink.getAttribute("id"));
+    likesModal.classList.add("hidden");
   }
-})
-  // USER PROFILE //
-function postInteraction(e){
-    const post = e.target.closest(".feed");
-    const commentSection = post.querySelector(".comments");
-  const commentInput = post.querySelector(".comment-input");
-  
+});
+// USER PROFILE //
+function postInteraction(e) {
+  const post = e.target.closest(".feed");
+  let commentSection;
+  let commentInput;
+  if (post) {
+    commentSection = post.querySelector(".comments");
+    commentInput = post.querySelector(".comment-input");
+  }
+
   // LIKE //
   if (e.target.classList.contains("uil-heart")) {
     if (!currentUser) {
       window.alert("Login to engage with posts");
       return;
     }
+
     const postId = post.getAttribute("id");
     if (!e.target.classList.contains("btn-active")) {
       likePost(e.target, post);
@@ -572,7 +602,7 @@ function postInteraction(e){
       unlikePost(postId, post);
     }
   }
-  
+
   // COMMENTS //
   if (e.target.classList.contains("uil-comment-dots")) {
     if (!currentUser) {
@@ -593,57 +623,74 @@ function postInteraction(e){
     closeCommentSection(commentInput, commentSection);
     post.querySelector(".view-comments").classList.remove("hidden");
   }
+  if (e.target.classList.contains("liked-by-modal")) {
+    const postId = e.target.closest(".feed").getAttribute("id");
+    openLikesModal(postId);
+  }
   if (e.target.classList.contains("user-click")) {
     goToUser(e.target.getAttribute("id"));
   }
-  if(e.target.classList.contains("liked-by-modal")){
-    const postId = e.target.closest('.feed').getAttribute('id')
-    openLikesModal(postId)
+  //Follow
+  if (e.target.classList.contains("follow")) {
+    followUser(e.target);
+  }
+  if (e.target.classList.contains("unfollow")) {
+    unfollowUser(e.target);
+  }
+  if (e.target.classList.contains("followingCount")) {
+    openFollowModal(e.target.getAttribute("id"), "following");
+  }
+  if (e.target.classList.contains("followersCount")) {
+    openFollowModal(e.target.getAttribute("id"), "followers");
   }
 }
-feedContainer.addEventListener("click", async function (e) {
+mainContainer.addEventListener("click", async function (e) {
   e.preventDefault();
-  postInteraction(e)
- 
+  postInteraction(e);
 });
-profileContainer.addEventListener("click", async function (e) {
-  e.preventDefault();
-  postInteraction(e)
-});
+// profileContainer.addEventListener("click", async function (e) {
+//   e.preventDefault();
+//   postInteraction(e);
+// });
 
 // <=========================== NOTIFICATIONS ===========================> //
-notifPopup.addEventListener('click', function(e) {
+notifPopup.addEventListener("click", function (e) {
   e.preventDefault();
-  const notif = e.target.closest('.notification')
-  if(notif){
-    if(notif.classList.contains("post")){
-      const postId = notif.getAttribute('id');
+  const notif = e.target.closest(".notification");
+  if (notif) {
+    if (notif.classList.contains("post")) {
+      const postId = notif.getAttribute("id");
       notifPopup.classList.add("hidden");
-      notificationPost(postId)
-    }
-    else if(notif.classList.contains('user-profile')){
-      const userId = notif.getAttribute('id')
+      notificationPost(postId);
+    } else if (notif.classList.contains("user-profile")) {
+      const userId = notif.getAttribute("id");
       notifPopup.classList.add("hidden");
-      goToUser(userId)
+      goToUser(userId);
     }
   }
-})
+});
+// singlePost.addEventListener("click", function (e) {
+//   e.preventDefault();
+//   postInteraction(e);
+// });
 
-async function notificationPost(postId){
+async function notificationPost(postId) {
   fetch("/api/post", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({postId}),
+    body: JSON.stringify({ postId }),
   })
     .then((response) => response.json())
     .then((postHtml) => {
-      feedContainer.classList.add("hidden")
-      createPostDiv.classList.add("hidden")
+      feedContainer.classList.add("hidden");
+      createPostDiv.classList.add("hidden");
       singlePost.innerHTML = postHtml;
-      singlePost.classList.remove("hidden")
-      window.scrollTo(0,0)
+      singlePost.classList.remove("hidden");
+      notifPopup.classList.add("hidden");
+      profileContainer.classList.add("hidden");
+      window.scrollTo(0, 0);
     });
 }
 //

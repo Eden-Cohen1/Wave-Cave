@@ -11,9 +11,9 @@ function generateNotifHtml(user) {
   });
   return html;
 }
-function generateLikesHtml(likes){
-  let html = ""
-  likes.forEach(like =>{
+function generateLikesHtml(likes) {
+  let html = "";
+  likes.forEach((like) => {
     html += `<div class="user-link user-click" id=${like.userID}>
     <a class="profile-link">
     <div class="profile-photo curr-user">
@@ -23,8 +23,24 @@ function generateLikesHtml(likes){
       <h4>${like.name}</h4>
     </div>
   </a>
-</div>`
-  })
+</div>`;
+  });
+  return html;
+}
+function generateFollowersHtml(follows) {
+  let html = "";
+  follows.forEach((follow) => {
+    html += `<div class="user-link user-click" id=${follow.userID}>
+    <a class="profile-link">
+    <div class="profile-photo curr-user">
+      <img src=${follow.img} />
+    </div>
+    <div class="handle">
+      <h4>${follow.name}</h4>
+    </div>
+  </a>
+</div>`;
+  });
   return html;
 }
 router.post(`/login`, async (req, res) => {
@@ -50,22 +66,28 @@ router.post("/user", async (req, res) => {
   if (req.session.authorized) {
     const currentUser = await findUserById(req.session.userID);
     const notificationsHtml = generateNotifHtml(currentUser);
-    res.json({user: currentUser, notifHtml: notificationsHtml});
+    res.json({ user: currentUser, notifHtml: notificationsHtml });
   } else {
     console.log("session not authorized");
     res.json(null);
-  } 
+  }
 });
 
-router.post('/likes', async(req, res) => {
+router.post("/likes", async (req, res) => {
   const { postId } = req.body;
-  const post = await getPost(postId)
-  const html = generateLikesHtml(post.likes)
-  res.json({html});
-})
-router.post('/following', async(req, res) => {
-  
-})
-router.post('/followers', async(req, res) => {
-  
-})
+  const post = await getPost(postId);
+  const html = generateLikesHtml(post.likes);
+  res.json({ html });
+});
+router.post("/following", async (req, res) => {
+  const { userID } = req.body;
+  const user = await findUserById(userID);
+  const html = generateFollowersHtml(user.following);
+  res.json({ html });
+});
+router.post("/followers", async (req, res) => {
+  const { userID } = req.body;
+  const user = await findUserById(userID);
+  const html = generateFollowersHtml(user.followers);
+  res.json({ html });
+});
