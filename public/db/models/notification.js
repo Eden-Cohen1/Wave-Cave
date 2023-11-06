@@ -18,6 +18,7 @@ const notificationSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  seen: Boolean,
 });
 
 notificationSchema.methods.generateHtml = function () {
@@ -35,13 +36,20 @@ notificationSchema.methods.generateHtml = function () {
 };
 export const Notification = mongoose.model("Notification", notificationSchema);
 
-export async function createNotification(toUser, fromUser, actionText, gotoId, notifType) {
+export async function createNotification(
+  toUser,
+  fromUser,
+  actionText,
+  gotoId,
+  notifType
+) {
   const notification = new Notification({
     toUser: toUser,
     fromUser: fromUser,
     text: `${actionText}`,
     notifType: `${notifType}`,
     gotoId: gotoId,
+    seen: false,
   });
   return await notification.save();
 }

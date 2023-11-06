@@ -43,11 +43,11 @@ userSchema.methods.generateProfileHtml = function (
               <div class="postCount col-lg-4 col-md-4">
               <h3 class="m-b-0 font-light">${this.postCount}</h3><small>Posts</small>
               </div>
-              <div class="followersCount col-lg-4 col-md-4">
-              <h3 class="m-b-0 font-light">${this.followers.length}</h3><small>Followers</small>
+              <div class="followersCount col-lg-4 col-md-4" id=${this.userID}>
+              <h3 class="m-b-0 font-light followersCount" id=${this.userID}>${this.followers.length}</h3><small>Followers</small>
               </div>
-              <div class="followingCount col-lg-4 col-md-4">
-              <h3 class="m-b-0 font-light">${this.following.length}</h3><small>Following</small>
+              <div class="followingCount col-lg-4 col-md-4" id=${this.userID}>
+              <h3 class="followingCount m-b-0 font-light" id=${this.userID}>${this.following.length}</h3><small>Following</small>
               </div>
           </div>
           ${followState}
@@ -118,16 +118,16 @@ export async function findUserById(id) {
   const user = await User.findOne({
     userID: id,
   })
-  .populate([
-    {
-      path: "notifications",
-      model: "Notification",
-      populate: { path: "fromUser", model: "User" },
-    },
-    { path: "followers", model: "User" },
-    { path: "following", model: "User" },
-  ])
-  .exec();
+    .populate([
+      {
+        path: "notifications",
+        model: "Notification",
+        populate: { path: "fromUser", model: "User" },
+      },
+      { path: "followers", model: "User" },
+      { path: "following", model: "User" },
+    ])
+    .exec();
   if (!user) {
     return null;
   }

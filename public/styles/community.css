@@ -107,7 +107,7 @@ nav .search-bar {
   margin-right: 1rem;
 }
 nav .search-bar input[type="search"] {
-  color: var(--secondary-color2);
+  color: var(--bg-color);
   /* color: var(--bg-color); */
   background: transparent;
   width: 30vw;
@@ -194,18 +194,17 @@ input {
 /* <!-- =========================== Middle =========================== --> */
 main {
   position: relative;
-  top: 10rem;
-  margin-top: 2.5rem;
-}
-main {
+  top: 7rem;
   display: grid;
   grid-template-columns: 18vw auto;
   column-gap: 4rem;
   position: relative;
+  margin-top: 3rem;
 }
 
 .mid {
   width: 100%;
+  margin-top: 3rem;
 }
 .news {
   padding: 0;
@@ -267,14 +266,12 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 1rem;
+  margin-top: 0.1rem;
   background-color: var(--comment-body-color);
-
-  /* background-color: var(--lighter-bg-color); */
-  /* background-color: aliceblue; */
   padding: 0.4rem, var(--card-padding);
   padding-left: 1.5rem;
   border-radius: var(--border-radius);
+  margin-left: 0rem;
 }
 
 .create-post input[type="text"],
@@ -301,7 +298,6 @@ main {
   font-size: 0.6rem;
   border: none;
   background-color: var(--secondary-color2);
-  /* background-color: var(--bg-color); */
   color: white;
   font-weight: 600;
   letter-spacing: 0.3em;
@@ -377,6 +373,8 @@ input[type="file"] {
   height: max-content;
   position: sticky;
   top: var(--sticky-top-left);
+  margin-top: 3rem;
+  z-index: 1;
 }
 .left h3,
 h4 {
@@ -499,7 +497,7 @@ a.menu-item {
   border-radius: var(--card-border-radius);
   padding: var(--card-padding);
   border: 0.01rem solid var(--border-color);
-  z-index: 1000;
+  z-index: 1000 !important;
 }
 .left .notifications-popup::before {
   content: "";
@@ -520,6 +518,7 @@ a.menu-item {
   margin-bottom: 1rem;
   border-radius: var(--card-border-radius);
   padding: 0.5rem;
+  z-index: 1000;
 }
 .left .notifications-popup > div:hover {
   background: var(--bg-color);
@@ -528,33 +527,39 @@ a.menu-item {
   display: block;
 }
 /* <!-- =========================== USERS-LINK =========================== --> */
-.users-modal{
-position: fixed;
-top: 35%;
-left: 35%;
-width: 30rem;
-background-color: var(--lighter-bg-color);
-border-radius: var(--card-border-radius);
-padding: var(--card-padding);
-border: 0.01rem solid var(--border-color);
-z-index: 1000;
+.users-modal {
+  position: fixed;
+  top: 35%;
+  left: 35%;
+  width: 30rem;
+  background-color: var(--lighter-bg-color);
+  border-radius: var(--card-border-radius);
+  padding: var(--card-padding);
+  border: 0.01rem solid var(--border-color);
+  z-index: 1000;
+  max-height: 25rem;
+  overflow-y: auto;
 }
-.users-modal h3{
-padding-bottom: 0.5rem;
-border-bottom: 1px solid var(--border-color);
+.users-modal h3 {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+  color: white;
 }
-
-
-.users-modal button{
+.users-modal h4,
+.users-modal a {
+  color: white;
+  text-decoration: none;
+}
+.users-modal button {
   font-size: 2rem !important;
 }
-.profile-link{
+.profile-link {
   display: flex !important;
-  gap: 1rem ;
+  gap: 1rem;
 }
-.profile-link h4{
+.profile-link h4 {
   font-size: 1.1rem;
-  margin-top: 0.5rem;
+  margin-top: 0.8rem;
 }
 .users-modal .user-link {
   display: flex;
@@ -618,13 +623,13 @@ border-bottom: 1px solid var(--border-color);
 .mid .liked-by {
   display: flex;
 }
-.mid .liked-by a{
+.mid .liked-by a {
   margin-left: 0.5rem;
   color: aliceblue;
   text-decoration: none;
   cursor: pointer;
 }
-.mid .liked-by a:hover{
+.mid .liked-by a:hover {
   text-decoration: underline;
 }
 .mid .liked-by span {
@@ -771,7 +776,7 @@ i.uil-share-alt:hover {
     background-color: var(--lighter-bg-color);
     padding: 4rem 4rem;
     box-shadow: 0 4rem 6rem rgba(0, 0, 0, 0.3);
-    z-index: 1000;
+    z-index: 10000;
     transition: all 0.5s;
     max-height: calc(100vh - 210px);
     overflow-y: auto !important;
@@ -801,15 +806,25 @@ i.uil-share-alt:hover {
   .articles {
     padding: 3%;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(20rem, 100%), 1fr));
-    grid-gap: 1rem;
-    width: 75rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(18rem, 100%), 1fr));
+    grid-gap: 0.5rem;
+    width: 60vw;
   }
-  .create-post-div{
+  .articles .card {
+    max-width: 18rem;
+  }
+  .create-post-div {
     max-width: 50rem;
   }
-  .mid{
-    max-width: 55rem;
+  nav .container {
+    margin-left: 12vw;
+  }
+  .mid,
+  .feeds {
+    max-width: 50vw;
+  }
+  .main {
+    margin-top: 3rem !important;
   }
 }
 
@@ -821,6 +836,33 @@ i.uil-share-alt:hover {
   }
   .mid {
     max-width: 55vw;
+  }
+  .feeds {
+    max-width: 40vw;
+  }
+  .create-post-div {
+    max-width: 40vw;
+  }
+}
+@media screen and (max-width: 1400px) {
+  .create-post-div {
+    max-width: 55vw;
+  }
+  .mid {
+    margin-left: 3rem;
+  }
+  .main {
+    margin-left: 1rem;
+  }
+  .articles {
+    padding: 3%;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(18rem, 100%), 1fr));
+    grid-gap: 0.5rem;
+    width: 60vw;
+  }
+  .articles .card {
+    max-width: 18rem;
   }
 }
 @media screen and (max-width: 992px) {
@@ -836,10 +878,6 @@ i.uil-share-alt:hover {
   }
   .container {
     margin-left: 1rem;
-  }
-  .feeds {
-    max-width: 90vw;
-    width: 100rem !important;
   }
   .news {
     gap: 1rem;
@@ -863,23 +901,147 @@ i.uil-share-alt:hover {
     grid-column: 2/3;
     position: fixed;
     bottom: 0;
-    right: 0;
+    left: 0;
     margin-top: 15rem;
   }
   main .mid {
     grid-column: 1/3;
-    left: 0;
+    margin-left: 2vw;
+  }
+  .feeds {
+    margin-right: 0rem !important;
+    margin-left: 2.2rem !important;
+    max-width: 70vw;
+    min-width: 20rem;
   }
   .create-post-div {
     padding-right: 2rem;
-    left: 0;
+    min-width: 23rem;
+    max-width: 70vw;
   }
   .articles {
     grid-template-columns: repeat(auto-fill, minmax(min(15rem, 100%), 1fr));
     gap: 1rem;
   }
 }
+div.container.feeds {
+  margin-left: 0rem !important;
+  margin-bottom: 15rem;
+}
+.my-profile {
+  margin-bottom: 15rem;
+}
+@media screen and (max-width: 700px) {
+  body {
+    overflow-y: hidden !important;
+  }
 
+  .single-post {
+    margin-left: 0rem !important;
+    margin-bottom: 10rem;
+    overflow: hidden;
+  }
+  .left .sidebar {
+    position: fixed;
+    display: flex;
+    background-color: var(--lighter-bg-color);
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    border-radius: 0 !important;
+    background-color: var(--bg-color);
+  }
+  .menu-item span {
+    padding-right: 2.5rem;
+    padding-left: 1.5rem;
+    width: 6rem;
+  }
+  .container.left {
+    display: flex;
+    bottom: 10rem !important;
+    overflow: hidden;
+  }
+  .left .sidebar .active::before {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 12%;
+    position: absolute;
+    background-color: var(--main-color);
+    top: 0;
+  }
+  .left .sidebar .menu-item:first-child.active,
+  .left .sidebar .menu-item:last-child.active {
+    border-top-left-radius: 0;
+  }
+  .container-footer {
+    display: none;
+  }
+  div.container.feeds {
+    margin-left: 0rem !important;
+    margin-bottom: 10rem;
+    overflow: hidden;
+  }
+  .my-profile {
+    margin-bottom: 10rem;
+  }
+  main {
+    margin-left: 0rem !important;
+  }
+  .create-post input.post {
+    margin-left: 0rem;
+  }
+  nav .btn-primary {
+    width: 3.5rem !important;
+    height: 2rem;
+    font-size: 0.6rem;
+  }
+  .left .notifications-popup {
+    position: absolute;
+    top: -390%;
+    left: -10rem;
+    width: 15rem;
+    height: 15rem;
+    background-color: var(--lighter-bg-color);
+    border-radius: var(--card-border-radius);
+    padding: var(--card-padding);
+    border: 0.01rem solid var(--border-color);
+    overflow-y: scroll;
+    overflow-x: hidden;
+    z-index: 1000;
+  }
+  .users-modal {
+    left: 2rem;
+    width: 20rem;
+  }
+  .sign-up-modal {
+    width: 22rem;
+    padding-left: 1rem !important;
+  }
+  .signup__form {
+    margin: 0 0.2rem !important;
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    align-items: center;
+    gap: 1rem !important;
+    font-size: smaller !important;
+    /* max-height: calc(100vh - 210px); */
+  }
+  .signup__form label {
+    max-width: 7.5rem;
+  }
+  .signup__form input[type="text"],
+  .signup__form input[type="email"],
+  .signup__form input[type="password"],
+  .signup__form select {
+    max-width: 10rem;
+  }
+  .signup__form .profile-upload {
+  }
+  .signup__form input[type="submit"] {
+    left: -2rem;
+  }
+}
 /* <!-- =========================== SIGNUP MODAL =========================== --> */
 
 .sign-up-modal,
@@ -893,7 +1055,7 @@ i.uil-share-alt:hover {
   background-color: var(--lighter-bg-color);
   padding: 3rem 3rem;
   box-shadow: 0 4rem 6rem rgba(0, 0, 0, 0.3);
-  z-index: 1000;
+  z-index: 10000;
   transition: all 0.5s;
   max-height: calc(100vh - 210px);
   overflow-y: auto !important;
@@ -1066,7 +1228,7 @@ footer input {
   width: 100%;
   word-wrap: normal;
   background-color: var(--bg-color);
-  z-index: -10;
+  z-index: 0;
 }
 
 .my-profile .card-img-top {
@@ -1139,4 +1301,24 @@ footer input {
 .card p {
   margin-top: 0;
   margin-bottom: 1rem;
+}
+
+.card-bottom div.followersCount,
+.card-bottom div.followingCount,
+.card-bottom div.postCount {
+  border-radius: var(--card-border-radius);
+  cursor: pointer;
+  z-index: 1100;
+}
+
+.card-bottom div.followersCount:hover,
+.card-bottom div.followingCount:hover,
+.card-bottom div.postCount:hover {
+  background-color: var(--secondary-color2);
+}
+.crad-bottom .followersCount h3,
+.crad-bottom .followersCount small,
+.card-bottom .followingCount h3,
+.card-bottom .followingCount small {
+  z-index: -100;
 }
