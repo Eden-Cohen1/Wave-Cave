@@ -96,7 +96,6 @@ postSchema.methods.generateHtml = function (
           <div class="interaction-buttons">
             <span><i class="uil uil-heart ${state}" data-item-id=${this.id}></i></span>
             <span><i class="uil uil-comment-dots" data-item-id=${this.id}></i></span>
-            <span><i class="uil uil-share-alt" data-item-id=${this.id}></i></span>
           </div>
         </div>
         <div class="liked-by">

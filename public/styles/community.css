@@ -5,8 +5,8 @@
   /* --secondary-color2: #44b5c4; */
   --secondary-color2: #44a7c4;
   /* --secondary-color2: #3b5998; */
-  --secondary-color-hover: #1e90ff;
-  /* --secondary-color-hover: #449af0; */
+  --secondary-color-hover: #154c6b;
+  /* --secondary-color-hover: #1e90ff; */
   /* --secondary-color2: #6897bb; */
   /* --secondary-color2: #68a2b6; */
   --main-color-opacity: hsla(182, 68%, 79%, 0.404);
@@ -37,7 +37,7 @@
   box-sizing: border-box;
   text-decoration: none;
   list-style: none;
-  transition: all 300ms ease;
+  transition: all 200ms ease;
 }
 img {
   display: block;
@@ -678,11 +678,13 @@ i.uil-trash-alt {
 .uil-trash-alt:hover {
   color: var(--color-danger);
   cursor: pointer;
+  transition: 0s;
 }
 i.uil-heart:hover,
 i.uil-comment-dots:hover,
 i.uil-share-alt:hover {
-  color: var(--main-color);
+  color: var(--secondary-color2);
+  transition: 0s;
   cursor: pointer;
 }
 
@@ -1236,7 +1238,11 @@ footer input {
 }
 
 .btn-active {
-  color: var(--main-color);
+  color: var(--color-danger);
+  font-weight: bold;
+}
+.btn-active:hover {
+  color: white;
   font-weight: bold;
 }
 
