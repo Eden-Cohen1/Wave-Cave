@@ -1,6 +1,7 @@
 "use strict";
 import mongoose from "mongoose";
 import { generateKey } from "../../../server.js";
+import { User } from "./user.js";
 import moment from "moment";
 const postSchema = new mongoose.Schema({
   // user: Object,
@@ -27,8 +28,14 @@ const postSchema = new mongoose.Schema({
 });
 postSchema.methods.generateHtml = function (
   likeActive = false,
-  afterComment = false
+  afterComment = false,
+  isMine = false
 ) {
+  const deletePost = isMine
+    ? `<span class="delete" id=${this.id}>
+  <i class="uil uil-trash-alt" id=${this.id}></i>
+  </span>`
+    : "";
   const timeAgo = generateTime(this);
   const state = likeActive ? "btn-active" : "";
   let showCommentState = "";
@@ -47,9 +54,9 @@ postSchema.methods.generateHtml = function (
             <span><img src=${this.likes[this.likes.length - 1]?.img} ></span>
             <span><img src=${this.likes[this.likes.length - 2]?.img} ></span>
             <span><img src=${this.likes[this.likes.length - 3]?.img} ></span>
-            <a class="liked-by-modal"> Liked by ${this.likes[this.likes.length - 1].name} and ${
-      this.likes.length - 1
-    } others</a>`;
+            <a class="liked-by-modal"> Liked by ${
+              this.likes[this.likes.length - 1].name
+            } and ${this.likes.length - 1} others</a>`;
   } else if (this.likes.length == 1) {
     likeByHtml = `
     <span><img src=${this.likes[0]?.img} ></span>
@@ -58,7 +65,9 @@ postSchema.methods.generateHtml = function (
     likeByHtml = `            
     <span><img src=${this.likes[this.likes?.length - 1]?.img} ></span>
     <span><img src=${this.likes[this.likes?.length - 2]?.img} ></span>
-    <a class="liked-by-modal">Liked by </b> ${this.likes[0]?.name} and 1 other</a>
+    <a class="liked-by-modal">Liked by </b> ${
+      this.likes[0]?.name
+    } and 1 other</a>
     `;
   } else {
     likeByHtml = `0 likes`;
@@ -75,9 +84,7 @@ postSchema.methods.generateHtml = function (
               <small><b>${this?.user.country}</b>, ${timeAgo}</small>
             </div>
           </div>
-          <span class="edit">
-            <i class="uil uil-ellipsis-h"></i>
-          </span>
+        ${deletePost}
         </div>
         <div class="photo">
           ${imgHtml}
@@ -89,7 +96,6 @@ postSchema.methods.generateHtml = function (
           <div class="interaction-buttons">
             <span><i class="uil uil-heart ${state}" data-item-id=${this.id}></i></span>
             <span><i class="uil uil-comment-dots" data-item-id=${this.id}></i></span>
-            <span><i class="uil uil-share-alt" data-item-id=${this.id}></i></span>
           </div>
         </div>
         <div class="liked-by">
@@ -155,4 +161,31 @@ export function generateTime(object) {
   const currentDate = moment();
   const timeAgo = objectDate.from(currentDate);
   return timeAgo;
+}
+
+export async function findPostsBySearch(searchTerm) {
+  const posts = await Post.find({
+    $or: [
+      { postText: { $regex: new RegExp(searchTerm, "i") } }, // Search by post text
+      {
+        user: {
+          $in: await User.find({
+            name: { $regex: new RegExp(searchTerm, "i") }, // Search by user name
+          }).select("_id"),
+        },
+      },
+    ],
+  })
+    .sort({ createdAt: -1 })
+    .populate([
+      { path: "user", model: "User" },
+      { path: "likes", model: "User" },
+      {
+        path: "comments",
+        model: "Comment",
+        populate: { path: "user", model: "User" },
+      },
+    ])
+    .exec();
+  return posts;
 }

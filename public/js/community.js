@@ -20,6 +20,9 @@ const btnCloseModalSU = document.querySelector(
 const btnCloseModalLG = document.querySelector(
   ".login-modal .btn--close-modal"
 );
+const btnSearch = document.querySelector(".search-bar button");
+const inputSearch = document.querySelector(".search-bar input");
+const searchResultDiv = document.querySelector(".search-results");
 const signupModal = document.querySelector(".sign-up-modal");
 const loginModal = document.querySelector(".login-modal");
 const modalOverlay = document.querySelector(".overlay-modal");
@@ -31,10 +34,8 @@ const containerMid = document.querySelector(".mid");
 const profileContainer = document.querySelector(".my-profile");
 const previewContainer = document.querySelector(".img-preview");
 const menuItems = document.querySelectorAll(".menu-item");
-const likesModal = document.querySelector(".users-modal");
+const usersModal = document.querySelector(".users-modal");
 let profilePostContainer = document.querySelector(".user-posts");
-let currentPage = 1;
-let currPostImgSrc = "";
 let currentUser;
 let currPage = 1;
 let currPath = `/api/feed?page=${currPage}`;
@@ -48,7 +49,7 @@ btnLogo.addEventListener("click", () => {
   window.location.href = "/";
 });
 
-// <=========================== REFRESH ===========================> //
+// <=========================== INIT FUNCTIONS ===========================> //
 
 async function getUserData() {
   await fetch("/user", {
@@ -68,20 +69,6 @@ async function getUserData() {
       updateUser(userData.user);
     });
 }
-// window.addEventListener("beforeunload", function (e) {
-//   localStorage.setItem(
-//     "lastHTML",
-//     JSON.stringify(document.querySelector("body").html)
-//   );
-// });
-// document.addEventListener("DOMContentLoaded", function () {
-//   const savedHtml = JSON.parse(localStorage.getItem("lastHTML"));
-//   if (savedHtml) {
-//     document.querySelector("body").outerHTML = savedHtml;
-//   }
-// });
-
-// <=========================== LOAD-POSTS ===========================> //
 
 let loadedPostsSet = new Set();
 async function loadFeedPosts(path, userId, isMainFeed) {
@@ -134,6 +121,15 @@ function addUniquePosts(data, isMainFeed) {
     .querySelectorAll(".comment-input .profile-photo img")
     .forEach((img) => (img.src = currentUser?.img));
 }
+function hideAll() {
+  searchResultDiv.classList.add("hidden");
+  feedContainer.classList.add("hidden");
+  createPostDiv.classList.add("hidden");
+  profileContainer.classList.add("hidden");
+  newsContainer.classList.add("hidden");
+}
+// <=========================== INFINITE SCROLL ===========================> //
+
 window.addEventListener("scroll", () => {
   if (sidebarFeed.classList.contains("hidden") || !isMainFeed) {
     return;
@@ -149,7 +145,9 @@ window.addEventListener("scroll", () => {
     }
   }
 });
-// <=========================== USER-PROFILE ===========================> //
+//-----------------------------------------------------------------------
+
+// <=========================== USERS ===========================> //
 
 function updateUserProfile(user, userProfileHtml) {
   const isProfileLoaded = document.querySelector(".container-profile");
@@ -163,7 +161,9 @@ function updateUserProfile(user, userProfileHtml) {
   }
   profileContainer.innerHTML = userProfileHtml;
 }
-// <=========================== LOGIN MODAL ===========================> //
+//-----------------------------------------------------------------------
+
+// <=========================== MODALS ===========================> //
 
 const openModalLG = function (e) {
   e.preventDefault();
@@ -175,6 +175,89 @@ const closeModalLG = function () {
   loginModal.classList.add("hidden");
   modalOverlay.classList.add("hidden");
 };
+function openLikesModal(postId) {
+  fetch("/likes", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ postId }),
+  })
+    .then((response) => response.json())
+    .then((likes) => {
+      console.log(likes);
+      const likesLinks = document.querySelector(".user-links");
+      likesLinks.innerHTML = likes.html;
+      usersModal.querySelector("h3").textContent = "Likes";
+      likesModal.classList.remove("hidden");
+    });
+}
+
+function openFollowModal(userID, path) {
+  console.log(userID);
+  fetch(`/${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userID }),
+  })
+    .then((response) => response.json())
+    .then((follows) => {
+      console.log(follows);
+      const followsLinks = document.querySelector(".user-links");
+      followsLinks.innerHTML = follows.html;
+      likesModal.querySelector("h3").textContent =
+        path[0].toUpperCase() + path.slice(1);
+      likesModal.classList.remove("hidden");
+    });
+}
+const openModalSU = function (e) {
+  e.preventDefault();
+  signupModal.classList.remove("hidden");
+  modalOverlay.classList.remove("hidden");
+};
+
+const closeModalSU = function () {
+  signupModal.classList.add("hidden");
+  modalOverlay.classList.add("hidden");
+};
+//-----------------------------------------------------------------------
+// <=========================== SEARCH ===========================> //
+function search() {
+  const searchTerm = inputSearch.value;
+  if (searchTerm !== "") {
+    fetch("/search", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ searchTerm }),
+    })
+      .then((response) => response.json())
+      .then((result) => {
+        console.log(result.html);
+        hideAll();
+        searchResultDiv.classList.remove("hidden");
+        inputSearch.value = "";
+        if (result.html.length < 30) {
+          searchResultDiv.innerHTML = `<h4>No results found. Try another search.</h4>`;
+          return;
+        }
+        searchResultDiv.innerHTML = result.html;
+      });
+  }
+}
+
+btnSearch.addEventListener("click", search);
+inputSearch.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    search();
+  }
+});
+//-----------------------------------------------------------------------
+
+// <=========================== LOGIN ===========================> //
 
 btnCloseModalLG.addEventListener("click", closeModalLG);
 btnLogin.addEventListener("click", openModalLG);
@@ -193,6 +276,7 @@ loginForm.addEventListener("submit", function (e) {
     .then((response) => response.json())
     .then((data) => {
       if (!data) {
+        loginForm.querySelector(".password").value = "";
         window.alert("Wrong email or password, please try again..");
         closeModalLG();
         return;
@@ -229,17 +313,9 @@ function updateUser(user) {
   btnLogin.classList.add("hidden");
   btnLogout.classList.remove("hidden");
 }
-// <=========================== SIGNUP MODAL ===========================> //
-const openModalSU = function (e) {
-  e.preventDefault();
-  signupModal.classList.remove("hidden");
-  modalOverlay.classList.remove("hidden");
-};
+//-----------------------------------------------------------------------
 
-const closeModalSU = function () {
-  signupModal.classList.add("hidden");
-  modalOverlay.classList.add("hidden");
-};
+// <=========================== SIGNUP ===========================> //
 
 btnCloseModalSU.addEventListener("click", closeModalSU);
 btnSignup.addEventListener("click", openModalSU);
@@ -290,6 +366,15 @@ btnLogout.addEventListener("click", () => {
 
 // <=========================== SIDEBAR ===========================> //
 
+function moveToUserProfile() {
+  profileContainer.classList.remove("hidden");
+  feedContainer.classList.add("hidden");
+  newsContainer.classList.add("hidden");
+  createPostDiv.classList.add("hidden");
+  notifPopup.classList.add("hidden");
+  singlePost.classList.add("hidden");
+  searchResultDiv.classList.add("hidden");
+}
 function changeActive() {
   menuItems.forEach((item) => item.classList.remove("active"));
 }
@@ -352,14 +437,6 @@ sidebarNews.addEventListener("click", function () {
   updateNews();
 });
 
-function moveToUserProfile() {
-  profileContainer.classList.remove("hidden");
-  feedContainer.classList.add("hidden");
-  newsContainer.classList.add("hidden");
-  createPostDiv.classList.add("hidden");
-  notifPopup.classList.add("hidden");
-  singlePost.classList.add("hidden");
-}
 //-----------------------------------------------------------------------
 
 // <=========================== POSTING ===========================> //
@@ -374,7 +451,6 @@ inputImg.addEventListener("change", function (e) {
 
   reader.onloadend = function () {
     preview.src = reader.result;
-    currPostImgSrc = reader.result;
   };
 
   if (file) {
@@ -409,7 +485,7 @@ createPostDiv.addEventListener("click", function (e) {
 
 //-----------------------------------------------------------------------
 
-// <=========================== LIKE/COMMENT/SHARE ===========================> //
+// <=========================== ENGAGEMENT ===========================> //
 
 function likePost(likeBtn, targetPost) {
   const postId = targetPost.getAttribute("id");
@@ -446,7 +522,6 @@ function unlikePost(postId, targetPost) {
       targetPost.outerHTML = postHtml;
     });
 }
-
 function commentPost(post) {
   const postID = post.getAttribute("id");
   const input = post.querySelector('input[type="text"]');
@@ -467,29 +542,24 @@ function commentPost(post) {
       newPostElement.src = currentUser?.img;
     });
 }
-
-function openCommentSection(input, section) {
-  if (currentUser) {
-    input.classList.remove("hidden");
-    input.querySelector("img").src = currentUser.img;
+function deletePost(postId) {
+  console.log(postId);
+  const confirmation = window.confirm(
+    "Are you sure you want to delete this post?"
+  );
+  if (confirmation) {
+    fetch(`/post/${postId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then((res) => {
+        document.querySelector(`.feed#${postId}`).outerHTML = "";
+      });
   }
-  section.classList.remove("hidden");
-  input.querySelector('input[type="text"]').focus();
 }
-function closeCommentSection(input, section) {
-  input.classList.add("hidden");
-  section.classList.add("hidden");
-}
-function goToUser(userId) {
-  currPath = `/api/profile`;
-  currUserid = userId;
-  isMainFeed = false;
-  moveToUserProfile();
-  loadFeedPosts(currPath, currUserid, isMainFeed);
-  changeActive();
-  window.scrollTo(0, 0);
-}
-
 async function followUser(target) {
   const profile = target.closest(".container-profile");
   const userID = profile.getAttribute("id");
@@ -529,57 +599,29 @@ async function unfollowUser(target) {
     });
 }
 
-function openLikesModal(postId) {
-  fetch("/likes", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ postId }),
-  })
-    .then((response) => response.json())
-    .then((likes) => {
-      console.log(likes);
-      const likesLinks = document.querySelector(".user-links");
-      likesLinks.innerHTML = likes.html;
-      likesModal.querySelector("h3").textContent = "Likes";
-      likesModal.classList.remove("hidden");
-    });
-}
-
-function openFollowModal(userID, path) {
-  console.log(userID);
-  fetch(`/${path}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ userID }),
-  })
-    .then((response) => response.json())
-    .then((follows) => {
-      console.log(follows);
-      const followsLinks = document.querySelector(".user-links");
-      followsLinks.innerHTML = follows.html;
-      likesModal.querySelector("h3").textContent =
-        path[0].toUpperCase() + path.slice(1);
-      likesModal.classList.remove("hidden");
-    });
-}
-likesModal.addEventListener("click", function (e) {
-  e.preventDefault();
-  const userLink = e.target.closest(".user-click");
-  if (e.target.classList.contains("btn--close-modal")) {
-    likesModal.classList.add("hidden");
+function openCommentSection(input, section) {
+  if (currentUser) {
+    input.classList.remove("hidden");
+    input.querySelector("img").src = currentUser.img;
   }
-  if (userLink) {
-    console.log(userLink.getAttribute("id"));
-    goToUser(userLink.getAttribute("id"));
-    likesModal.classList.add("hidden");
-  }
-});
-// USER PROFILE //
+  section.classList.remove("hidden");
+  input.querySelector('input[type="text"]').focus();
+}
+function closeCommentSection(input, section) {
+  input.classList.add("hidden");
+  section.classList.add("hidden");
+}
+function goToUser(userId) {
+  currPath = `/api/profile`;
+  currUserid = userId;
+  isMainFeed = false;
+  moveToUserProfile();
+  loadFeedPosts(currPath, currUserid, isMainFeed);
+  changeActive();
+  window.scrollTo(0, 0);
+}
 function postInteraction(e) {
+  console.log(e.target, "@@@@");
   const post = e.target.closest(".feed");
   let commentSection;
   let commentInput;
@@ -588,7 +630,7 @@ function postInteraction(e) {
     commentInput = post.querySelector(".comment-input");
   }
 
-  // LIKE //
+  // LIKE/UNLIKE //
   if (e.target.classList.contains("uil-heart")) {
     if (!currentUser) {
       window.alert("Login to engage with posts");
@@ -629,6 +671,8 @@ function postInteraction(e) {
   }
   if (e.target.classList.contains("user-click")) {
     goToUser(e.target.getAttribute("id"));
+  } else if (e.target.closest(".user-click")) {
+    goToUser(e.target.closest(".user-click").getAttribute("id"));
   }
   //Follow
   if (e.target.classList.contains("follow")) {
@@ -643,37 +687,11 @@ function postInteraction(e) {
   if (e.target.classList.contains("followersCount")) {
     openFollowModal(e.target.getAttribute("id"), "followers");
   }
-}
-mainContainer.addEventListener("click", async function (e) {
-  e.preventDefault();
-  postInteraction(e);
-});
-// profileContainer.addEventListener("click", async function (e) {
-//   e.preventDefault();
-//   postInteraction(e);
-// });
-
-// <=========================== NOTIFICATIONS ===========================> //
-notifPopup.addEventListener("click", function (e) {
-  e.preventDefault();
-  const notif = e.target.closest(".notification");
-  if (notif) {
-    if (notif.classList.contains("post")) {
-      const postId = notif.getAttribute("id");
-      notifPopup.classList.add("hidden");
-      notificationPost(postId);
-    } else if (notif.classList.contains("user-profile")) {
-      const userId = notif.getAttribute("id");
-      notifPopup.classList.add("hidden");
-      goToUser(userId);
-    }
+  //Delete
+  if (e.target.classList.contains("uil-trash-alt")) {
+    deletePost(e.target.getAttribute("id"));
   }
-});
-// singlePost.addEventListener("click", function (e) {
-//   e.preventDefault();
-//   postInteraction(e);
-// });
-
+}
 async function notificationPost(postId) {
   fetch("/api/post", {
     method: "POST",
@@ -693,37 +711,48 @@ async function notificationPost(postId) {
       window.scrollTo(0, 0);
     });
 }
-//
-//READ-MORE (COMMENTS)
-const readMorePrefaceMaxLength = 120;
-const readMoreTexts = document.querySelectorAll(".read-more-text");
-readMoreTexts.forEach((readMoreText) => {
-  const extra = SliceHTML.sliceHTML(readMoreText, readMorePrefaceMaxLength);
-  if (extra.textContent.length === 0) {
-    return;
+//-----------------------------------------------------------------------
+
+// <=========================== FEED EVENT DELEGATION ===========================> //
+
+usersModal.addEventListener("click", function (e) {
+  e.preventDefault();
+  const userLink = e.target.closest(".user-click");
+  if (e.target.classList.contains("btn--close-modal")) {
+    usersModal.classList.add("hidden");
   }
-  const preface = SliceHTML.sliceHTML(
-    readMoreText,
-    0,
-    readMorePrefaceMaxLength
-  );
-  readMoreText.innerHTML = "";
-  readMoreText.append(preface);
-  const extraSpan = document.createElement("span");
-  extraSpan.hidden = true;
-  extraSpan.append(extra);
-  const button = document.createElement("a");
-  button.classList.add("read-more-button");
-  button.textContent = "... read more";
-  button.addEventListener("click", () => {
-    button.hidden = true;
-    extraSpan.hidden = false;
-  });
-  readMoreText.append(button);
-  readMoreText.append(extraSpan);
+  if (userLink) {
+    console.log(userLink.getAttribute("id"));
+    goToUser(userLink.getAttribute("id"));
+    usersModal.classList.add("hidden");
+  }
 });
+mainContainer.addEventListener("click", async function (e) {
+  e.preventDefault();
+  postInteraction(e);
+});
+//-----------------------------------------------------------------------
+
+// <=========================== NOTIFICATIONS ===========================> //
+notifPopup.addEventListener("click", function (e) {
+  e.preventDefault();
+  const notif = e.target.closest(".notification");
+  if (notif) {
+    if (notif.classList.contains("post")) {
+      const postId = notif.getAttribute("id");
+      notifPopup.classList.add("hidden");
+      notificationPost(postId);
+    } else if (notif.classList.contains("user-profile")) {
+      const userId = notif.getAttribute("id");
+      notifPopup.classList.add("hidden");
+      goToUser(userId);
+    }
+  }
+});
+//-----------------------------------------------------------------------
 
 // <=========================== NEWS ===========================> //
+
 function addArticles(articles) {
   articles.forEach((article) => {
     const html = `<div class="card">
@@ -757,3 +786,33 @@ async function updateNews() {
   const articles = await response.json();
   addArticles(articles);
 }
+//-----------------------------------------------------------------------
+
+//READ-MORE (COMMENTS)
+const readMorePrefaceMaxLength = 120;
+const readMoreTexts = document.querySelectorAll(".read-more-text");
+readMoreTexts.forEach((readMoreText) => {
+  const extra = SliceHTML.sliceHTML(readMoreText, readMorePrefaceMaxLength);
+  if (extra.textContent.length === 0) {
+    return;
+  }
+  const preface = SliceHTML.sliceHTML(
+    readMoreText,
+    0,
+    readMorePrefaceMaxLength
+  );
+  readMoreText.innerHTML = "";
+  readMoreText.append(preface);
+  const extraSpan = document.createElement("span");
+  extraSpan.hidden = true;
+  extraSpan.append(extra);
+  const button = document.createElement("a");
+  button.classList.add("read-more-button");
+  button.textContent = "... read more";
+  button.addEventListener("click", () => {
+    button.hidden = true;
+    extraSpan.hidden = false;
+  });
+  readMoreText.append(button);
+  readMoreText.append(extraSpan);
+});

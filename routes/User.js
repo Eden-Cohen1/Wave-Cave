@@ -1,5 +1,10 @@
-import { findUser, findUserById } from "../public/db/models/user.js";
-import { generateKey, getPost } from "../server.js";
+import {
+  findUser,
+  findUserById,
+  findUserBySearch,
+} from "../public/db/models/user.js";
+import { findPostsBySearch } from "../public/db/models/post.js";
+import { generateKey, getPost, isContainUser } from "../server.js";
 import express from "express";
 
 export const router = express.Router();
@@ -40,6 +45,28 @@ function generateFollowersHtml(follows) {
     </div>
   </a>
 </div>`;
+  });
+  return html;
+}
+async function generateSearchResults(users, posts, currentUser) {
+  let html = `<h3>Search Results</h3>`;
+  users?.forEach((user) => {
+    html += `<div class="user-link user-click user-search result" id=${user.userID}>
+    <a class="profile-link user-click" id=${user.userID}>
+    <div class="profile-photo curr-user">
+      <img src=${user.img} />
+    </div>
+    <div class="handle">
+      <h4>${user.name}</h4>
+    </div>
+  </a>
+  </div>`;
+  });
+  let liked, isMine;
+  posts?.forEach((post) => {
+    liked = isContainUser(post.likes, currentUser);
+    isMine = currentUser?.userID == post.user.userID;
+    html += post.generateHtml(liked, false, isMine);
   });
   return html;
 }
@@ -89,5 +116,17 @@ router.post("/followers", async (req, res) => {
   const { userID } = req.body;
   const user = await findUserById(userID);
   const html = generateFollowersHtml(user.followers);
+  res.json({ html });
+});
+router.post("/search", async (req, res) => {
+  let currentUser;
+  if (req.session.authorized) {
+    currentUser = await findUserById(req.session.userID);
+  }
+  const { searchTerm } = req.body;
+  const usersFound = await findUserBySearch(searchTerm);
+  const postsFound = await findPostsBySearch(searchTerm);
+  const html = await generateSearchResults(usersFound, postsFound, currentUser);
+  console.log(html);
   res.json({ html });
 });
