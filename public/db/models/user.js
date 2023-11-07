@@ -133,3 +133,21 @@ export async function findUserById(id) {
   }
   return user;
 }
+
+export async function findUserBySearch(searchTerm) {
+  const users = await User.find({
+    name: { $regex: new RegExp(searchTerm, "i") },
+  })
+    .populate([
+      {
+        path: "notifications",
+        model: "Notification",
+        populate: { path: "fromUser", model: "User" },
+      },
+      { path: "followers", model: "User" },
+      { path: "following", model: "User" },
+    ])
+    .exec();
+
+  return users;
+}

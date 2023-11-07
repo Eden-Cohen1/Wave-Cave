@@ -179,21 +179,6 @@ btnForecast.addEventListener("click", function (e) {
   section.scrollIntoView({ behavior: "smooth" });
 });
 
-//hover effect
-
-// function handleHover(e) {
-//   e.target.style.color = this;
-// }
-// nav.addEventListener("mouseover", handleHover.bind("#a7ecee"));
-// nav.addEventListener("mouseout", handleHover.bind("#f0f8ff"));
-// console.log(btnsFooter);
-// btnsFooter.forEach((link) =>
-//   link.addEventListener("mouseover", handleHover.bind("#a7ecee"))
-// );
-// btnsFooter.forEach((link) =>
-//   link.addEventListener("mouseout", handleHover.bind("#f0f8ff"))
-// );
-
 //-----------------------------------------------------------------------
 
 // <=========================== REVEAL IMGES ===========================> //

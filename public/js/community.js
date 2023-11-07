@@ -20,6 +20,9 @@ const btnCloseModalSU = document.querySelector(
 const btnCloseModalLG = document.querySelector(
   ".login-modal .btn--close-modal"
 );
+const btnSearch = document.querySelector(".search-bar button");
+const inputSearch = document.querySelector(".search-bar input");
+const searchResultDiv = document.querySelector(".search-results");
 const signupModal = document.querySelector(".sign-up-modal");
 const loginModal = document.querySelector(".login-modal");
 const modalOverlay = document.querySelector(".overlay-modal");
@@ -118,6 +121,13 @@ function addUniquePosts(data, isMainFeed) {
     .querySelectorAll(".comment-input .profile-photo img")
     .forEach((img) => (img.src = currentUser?.img));
 }
+function hideAll() {
+  searchResultDiv.classList.add("hidden");
+  feedContainer.classList.add("hidden");
+  createPostDiv.classList.add("hidden");
+  profileContainer.classList.add("hidden");
+  newsContainer.classList.add("hidden");
+}
 // <=========================== INFINITE SCROLL ===========================> //
 
 window.addEventListener("scroll", () => {
@@ -213,6 +223,39 @@ const closeModalSU = function () {
   modalOverlay.classList.add("hidden");
 };
 //-----------------------------------------------------------------------
+// <=========================== SEARCH ===========================> //
+function search() {
+  const searchTerm = inputSearch.value;
+  if (searchTerm !== "") {
+    fetch("/search", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ searchTerm }),
+    })
+      .then((response) => response.json())
+      .then((result) => {
+        console.log(result.html);
+        hideAll();
+        searchResultDiv.classList.remove("hidden");
+        inputSearch.value = "";
+        if (result.html.length < 30) {
+          searchResultDiv.innerHTML = `<h4>No results found. Try another search.</h4>`;
+          return;
+        }
+        searchResultDiv.innerHTML = result.html;
+      });
+  }
+}
+
+btnSearch.addEventListener("click", search);
+inputSearch.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    search();
+  }
+});
+//-----------------------------------------------------------------------
 
 // <=========================== LOGIN ===========================> //
 
@@ -233,6 +276,7 @@ loginForm.addEventListener("submit", function (e) {
     .then((response) => response.json())
     .then((data) => {
       if (!data) {
+        loginForm.querySelector(".password").value = "";
         window.alert("Wrong email or password, please try again..");
         closeModalLG();
         return;
@@ -329,6 +373,7 @@ function moveToUserProfile() {
   createPostDiv.classList.add("hidden");
   notifPopup.classList.add("hidden");
   singlePost.classList.add("hidden");
+  searchResultDiv.classList.add("hidden");
 }
 function changeActive() {
   menuItems.forEach((item) => item.classList.remove("active"));
@@ -497,6 +542,24 @@ function commentPost(post) {
       newPostElement.src = currentUser?.img;
     });
 }
+function deletePost(postId) {
+  console.log(postId);
+  const confirmation = window.confirm(
+    "Are you sure you want to delete this post?"
+  );
+  if (confirmation) {
+    fetch(`/post/${postId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then((res) => {
+        document.querySelector(`.feed#${postId}`).outerHTML = "";
+      });
+  }
+}
 async function followUser(target) {
   const profile = target.closest(".container-profile");
   const userID = profile.getAttribute("id");
@@ -558,6 +621,7 @@ function goToUser(userId) {
   window.scrollTo(0, 0);
 }
 function postInteraction(e) {
+  console.log(e.target, "@@@@");
   const post = e.target.closest(".feed");
   let commentSection;
   let commentInput;
@@ -566,7 +630,7 @@ function postInteraction(e) {
     commentInput = post.querySelector(".comment-input");
   }
 
-  // LIKE //
+  // LIKE/UNLIKE //
   if (e.target.classList.contains("uil-heart")) {
     if (!currentUser) {
       window.alert("Login to engage with posts");
@@ -607,6 +671,8 @@ function postInteraction(e) {
   }
   if (e.target.classList.contains("user-click")) {
     goToUser(e.target.getAttribute("id"));
+  } else if (e.target.closest(".user-click")) {
+    goToUser(e.target.closest(".user-click").getAttribute("id"));
   }
   //Follow
   if (e.target.classList.contains("follow")) {
@@ -620,6 +686,10 @@ function postInteraction(e) {
   }
   if (e.target.classList.contains("followersCount")) {
     openFollowModal(e.target.getAttribute("id"), "followers");
+  }
+  //Delete
+  if (e.target.classList.contains("uil-trash-alt")) {
+    deletePost(e.target.getAttribute("id"));
   }
 }
 async function notificationPost(postId) {

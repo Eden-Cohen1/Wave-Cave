@@ -106,6 +106,11 @@ nav .search-bar {
   margin-left: 4rem;
   margin-right: 1rem;
 }
+nav .search-bar button {
+  border: none;
+  color: var(--grey-color);
+  background-color: aliceblue;
+}
 nav .search-bar input[type="search"] {
   color: var(--bg-color);
   /* color: var(--bg-color); */
@@ -133,6 +138,11 @@ nav li {
   gap: 2rem;
 }
 
+nav .profile-photo {
+  position: relative;
+  top: 1px;
+  left: 10vw;
+}
 .profile-photo {
   width: 2.8rem;
   aspect-ratio: 1/1;
@@ -206,7 +216,17 @@ main {
   width: 100%;
   margin-top: 3rem;
 }
-.news {
+.result {
+  padding: 2rem;
+  border-bottom: solid;
+  border-width: 1px;
+  border-color: var(--border-color);
+}
+.result:hover {
+  background-color: var(--lighter-bg-color);
+  cursor: pointer;
+}
+.user .news {
   padding: 0;
   margin-top: 2rem;
 }
@@ -651,6 +671,14 @@ a.menu-item {
   text-wrap: wrap;
 }
 
+i.uil-trash-alt {
+  font-size: 800;
+  width: 5rem;
+}
+.uil-trash-alt:hover {
+  color: var(--color-danger);
+  cursor: pointer;
+}
 i.uil-heart:hover,
 i.uil-comment-dots:hover,
 i.uil-share-alt:hover {
@@ -950,6 +978,8 @@ div.container.feeds {
     width: 100%;
     border-radius: 0 !important;
     background-color: var(--bg-color);
+    align-items: center;
+    justify-content: center;
   }
   .menu-item span {
     padding-right: 2.5rem;
@@ -992,9 +1022,15 @@ div.container.feeds {
     margin-left: 0rem;
   }
   nav .btn-primary {
+    position: absolute;
     width: 3.5rem !important;
     height: 2rem;
     font-size: 0.6rem;
+    left: 17rem;
+    top: 4rem;
+  }
+  nav .profile-photo {
+    margin-left: 8rem;
   }
   .left .notifications-popup {
     position: absolute;

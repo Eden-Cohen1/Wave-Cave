@@ -26,9 +26,12 @@
         <div class="container">
           <img class="logo-img" src="./images/logo-white.png" alt="" />
           <div class="search-bar">
-            <i class="uil uil-search"></i>
-            <input type="search" placeholder="Search for content" />
+              <input type="search" placeholder="Search for content" />
+              <button type="button" id="searchButton">
+              <i class="uil uil-search"></i>
+              </button>
           </div>
+          <div class="computer-nav">
           <ul>
             <li class="nav-item">
               <a href=""
@@ -45,16 +48,15 @@
                 ><button class="btn-primary login">Login</button></a
               >
             </li>
-            <li>
+          </div>
               <div class="profile-photo curr-user">
                 <img src="./images/profile-photo.png" alt="profile-photo" />
               </div>
-            </li>
           </ul>
         </div>
       </nav>
     </div>
-    <main class="container main g-0">
+    <main class="container main g-0">        
       <!-- =========================== LEFT =========================== -->
       <div class="container left">
         <a class="profile">
@@ -81,7 +83,7 @@
             <h3>Notifications</h3>
             <div class="notifications-popup hidden">
               No Notifications
-          </div>
+            </div>
           </a>
           <a class="menu-item" id="news">
             <span><i class="uil uil-newspaper"></i></span>
@@ -93,13 +95,16 @@
       </div>
       <!-- =========================== MIDDLE =========================== -->
       <div class="container mid">
+        <div class="search-results">
+            
+        </div>
         <div class="create-post-div">
-        <form
+          <form
           action="/Post"
           method="POST"
           enctype="multipart/form-data"
           class="container create-post hidden"
-        >
+          >
           <div class="profile-photo curr-user">
             <img src="./images/profile-photo.png" alt="profile-photo" />
           </div>
