@@ -26,13 +26,14 @@
         <div class="container">
           <img class="logo-img" src="./images/logo-white.png" alt="" />
           <div class="search-bar">
-              <input type="search" placeholder="Search for content" />
+              <input type="search" placeholder="Search" />
               <button type="button" id="searchButton">
               <i class="uil uil-search"></i>
               </button>
           </div>
           <div class="computer-nav">
-          <ul>
+          <ul id="mySidebar">
+            <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
             <li class="nav-item">
               <a href=""
                 ><button class="btn-primary signup">Sign-up</button></a
@@ -49,10 +50,14 @@
               >
             </li>
           </div>
-              <div class="profile-photo curr-user">
-                <img src="./images/profile-photo.png" alt="profile-photo" />
-              </div>
-          </ul>
+        </ul>
+        <div class="profile-photo curr-user">
+          <img src="./images/profile-photo.png" alt="profile-photo" />
+        </div>
+          <div id="sidebar">
+            <button class="openbtn" onclick="openNav()">☰</button>  
+          </div>
+
         </div>
       </nav>
     </div>
@@ -607,6 +612,19 @@
       </footer>
     </div>
   </div>
+  <script>
+    function openNav() {
+      document.getElementById("mySidebar").style.width = "250px";
+      document.getElementById("mySidebar").style.right = "0";
+
+    }
+    
+    function closeNav() {
+      document.getElementById("mySidebar").style.width = "0";
+      document.getElementById("mySidebar").style.right = "-40px";
+
+    }
+    </script>
   </body>
   </html>
   
