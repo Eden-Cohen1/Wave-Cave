@@ -42,7 +42,6 @@ let currPath = `/api/feed?page=${currPage}`;
 let currUserid = "none";
 
 let isMainFeed = true;
-let noPostLeft = false;
 loadFeedPosts(currPath, currUserid, isMainFeed);
 
 btnLogo.addEventListener("click", () => {
@@ -65,6 +64,9 @@ async function getUserData() {
       }
       currentUser = userData.user;
       const notifPopup = document.querySelector(".notifications-popup");
+      document.querySelector(
+        ".notification-count"
+      ).textContent = `${userData.user.notifications.length}+`;
       notifPopup.innerHTML = userData.notifHtml;
       updateUser(userData.user);
     });
@@ -84,16 +86,18 @@ async function loadFeedPosts(path, userId, isMainFeed) {
     },
   });
   const data = await response.json();
-  if (!data.postHtmlList) {
-    noPostLeft = true;
+  console.log(data.postHtmlList);
+  if (!data.postHtmlList || data.postHtmlList?.length < 1) {
     console.log("no posts left");
     return;
   }
+  profilePostContainer.innerHTML = "";
   updateUserProfile(data.user, data.userHtml);
   addUniquePosts(data, isMainFeed);
 }
 
 function addUniquePosts(data, isMainFeed) {
+  console.log(isMainFeed);
   if (isMainFeed) {
     const uniquePosts = data.postHtmlList.filter((post) => {
       return !loadedPostsSet.has(post.id);
@@ -106,8 +110,10 @@ function addUniquePosts(data, isMainFeed) {
       currPage++;
     }
   } else {
+    console.log(profilePostContainer);
     const uniquePosts = data.postHtmlList.filter((post) => {
       const loadedPosts = [...profilePostContainer.querySelectorAll(".feed")];
+      console.log(loadedPosts);
       const loadedPostsID = loadedPosts.map((post) => post.getAttribute("id"));
       return !loadedPostsID.includes(post.id);
     });
@@ -136,12 +142,8 @@ window.addEventListener("scroll", () => {
   }
   if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
     if (isMainFeed) {
-      if (noPostLeft) {
-        return;
-      } else {
-        currPath = `/api/feed?page=${currPage}`;
-        loadFeedPosts(currPath, currUserid, isMainFeed);
-      }
+      currPath = `/api/feed?page=${currPage}`;
+      loadFeedPosts(currPath, currUserid, isMainFeed);
     }
   }
 });
@@ -189,7 +191,7 @@ function openLikesModal(postId) {
       const likesLinks = document.querySelector(".user-links");
       likesLinks.innerHTML = likes.html;
       usersModal.querySelector("h3").textContent = "Likes";
-      likesModal.classList.remove("hidden");
+      usersModal.classList.remove("hidden");
     });
 }
 
@@ -207,9 +209,9 @@ function openFollowModal(userID, path) {
       console.log(follows);
       const followsLinks = document.querySelector(".user-links");
       followsLinks.innerHTML = follows.html;
-      likesModal.querySelector("h3").textContent =
+      usersModal.querySelector("h3").textContent =
         path[0].toUpperCase() + path.slice(1);
-      likesModal.classList.remove("hidden");
+      usersModal.classList.remove("hidden");
     });
 }
 const openModalSU = function (e) {
@@ -386,7 +388,6 @@ menuItems.forEach((item) => {
 });
 
 sidebarFeed.addEventListener("click", async function () {
-  console.log(currentUser);
   if (currentUser) {
     createPostDiv.classList.remove("hidden");
   } else {
@@ -462,16 +463,15 @@ inputImg.addEventListener("change", function (e) {
 
 //post click//
 createPostDiv.addEventListener("click", function (e) {
-  if (e.target.classList.contains("post")) {
+  if (e.target.classList.contains("post") && !e.target.disabled) {
     e.preventDefault();
     previewContainer.classList.add("hidden");
-
     const text = document.querySelector("#create-post");
     const imgName = inputImg.files[0] ? inputImg.files[0].name : "";
     const formData = new FormData(postForm);
     formData.append("imgName", imgName);
     text.value = "";
-
+    e.target.disabled = true;
     fetch("/Post", {
       method: "POST",
       body: formData,
@@ -479,7 +479,8 @@ createPostDiv.addEventListener("click", function (e) {
       .then((response) => response.json())
       .then((html) => {
         feedContainer.insertAdjacentHTML("afterbegin", html);
-      });
+      })
+      .finally(() => (e.target.disabled = false));
   }
 });
 
@@ -490,6 +491,7 @@ createPostDiv.addEventListener("click", function (e) {
 function likePost(likeBtn, targetPost) {
   const postId = targetPost.getAttribute("id");
   if (!likeBtn.classList.contains("btn-active")) {
+    likeBtn.disabled = true;
     fetch("/like", {
       method: "POST",
       headers: {
@@ -503,10 +505,12 @@ function likePost(likeBtn, targetPost) {
           return;
         }
         targetPost.outerHTML = postHtml;
-      });
+      })
+      .finally(() => (likeBtn.disabled = false));
   }
 }
-function unlikePost(postId, targetPost) {
+function unlikePost(postId, targetPost, unlikeBtn) {
+  unlikeBtn.disabled = true;
   fetch("/unlike", {
     method: "POST",
     headers: {
@@ -520,9 +524,11 @@ function unlikePost(postId, targetPost) {
         return;
       }
       targetPost.outerHTML = postHtml;
-    });
+    })
+    .finally(() => (unlikeBtn.disabled = false));
 }
-function commentPost(post) {
+function commentPost(post, commentBtn) {
+  commentBtn.disabled = true;
   const postID = post.getAttribute("id");
   const input = post.querySelector('input[type="text"]');
   const formData = { text: input.value, postId: postID };
@@ -540,7 +546,8 @@ function commentPost(post) {
       const newPostElement = document.querySelector(`.feed #${postID} img`);
       console.log(newPostElement);
       newPostElement.src = currentUser?.img;
-    });
+    })
+    .finally(() => (commentBtn.disabled = false));
 }
 function deletePost(postId) {
   console.log(postId);
@@ -561,6 +568,7 @@ function deletePost(postId) {
   }
 }
 async function followUser(target) {
+  target.disabled = true;
   const profile = target.closest(".container-profile");
   const userID = profile.getAttribute("id");
   fetch("/follow", {
@@ -577,9 +585,11 @@ async function followUser(target) {
       followState.classList.remove("follow");
       followState.classList.add("unfollow");
       followState.textContent = "Following";
-    });
+    })
+    .finally(() => (target.disabled = false));
 }
 async function unfollowUser(target) {
+  target.disabled = true;
   const profile = target.closest(".container-profile");
   const userID = profile.getAttribute("id");
   fetch("/unfollow", {
@@ -596,7 +606,8 @@ async function unfollowUser(target) {
       followState.classList.remove("unfollow");
       followState.classList.add("follow");
       followState.textContent = "Follow";
-    });
+    })
+    .finally(() => (target.disabled = false));
 }
 
 function openCommentSection(input, section) {
@@ -621,7 +632,6 @@ function goToUser(userId) {
   window.scrollTo(0, 0);
 }
 function postInteraction(e) {
-  console.log(e.target, "@@@@");
   const post = e.target.closest(".feed");
   let commentSection;
   let commentInput;
@@ -629,9 +639,9 @@ function postInteraction(e) {
     commentSection = post.querySelector(".comments");
     commentInput = post.querySelector(".comment-input");
   }
-
+  0;
   // LIKE/UNLIKE //
-  if (e.target.classList.contains("uil-heart")) {
+  if (e.target.classList.contains("uil-heart") && !e.target.disabled) {
     if (!currentUser) {
       window.alert("Login to engage with posts");
       return;
@@ -641,7 +651,7 @@ function postInteraction(e) {
     if (!e.target.classList.contains("btn-active")) {
       likePost(e.target, post);
     } else {
-      unlikePost(postId, post);
+      unlikePost(postId, post, e.target);
     }
   }
 
@@ -654,8 +664,8 @@ function postInteraction(e) {
     openCommentSection(commentInput, commentSection);
     post.querySelector(".view-comments").classList.add("hidden");
   }
-  if (e.target.classList.contains("post-click")) {
-    commentPost(post);
+  if (e.target.classList.contains("post-click") && !e.target.disabled) {
+    commentPost(post, e.target);
   }
   if (e.target.classList.contains("view-comments")) {
     openCommentSection(commentInput, commentSection);
@@ -675,10 +685,10 @@ function postInteraction(e) {
     goToUser(e.target.closest(".user-click").getAttribute("id"));
   }
   //Follow
-  if (e.target.classList.contains("follow")) {
+  if (e.target.classList.contains("follow") && !e.target.disabled) {
     followUser(e.target);
   }
-  if (e.target.classList.contains("unfollow")) {
+  if (e.target.classList.contains("unfollow") && !e.target.disabled) {
     unfollowUser(e.target);
   }
   if (e.target.classList.contains("followingCount")) {
@@ -727,7 +737,15 @@ usersModal.addEventListener("click", function (e) {
     usersModal.classList.add("hidden");
   }
 });
-mainContainer.addEventListener("click", async function (e) {
+feedContainer.addEventListener("click", async function (e) {
+  e.preventDefault();
+  postInteraction(e);
+});
+profileContainer.addEventListener("click", async function (e) {
+  e.preventDefault();
+  postInteraction(e);
+});
+singlePost.addEventListener("click", async function (e) {
   e.preventDefault();
   postInteraction(e);
 });

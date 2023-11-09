@@ -1,6 +1,7 @@
 import { Post } from "../public/db/models/post.js";
 import { User, findUserById } from "../public/db/models/user.js";
 import { isContainUser } from "../server.js";
+import { Notification } from "../public/db/models/notification.js";
 import express from "express";
 
 export const router = express.Router();
@@ -117,7 +118,7 @@ router.post("/api/post", async (req, res) => {
   const currentUser = req.session.user;
   const { postId } = req.body;
   const post = await getPost(postId);
-  const isLiked = isContainUser(post.likes, currentUser);
+  const isLiked = isContainUser(post?.likes, currentUser);
   const html = post.generateHtml(
     isLiked,
     false,
@@ -130,6 +131,7 @@ router.post("/api/post", async (req, res) => {
 router.delete("/post/:id", async (req, res) => {
   const id = req.params.id;
   console.log(id);
+  await Notification.findOneAndDelete({ gotoId: id });
   const deletedItem = await Post.findOneAndDelete({ id: id });
   if (deletedItem) {
     res.json({ message: "Item Deleted", deletedItem });

@@ -380,6 +380,7 @@ footer input {
 .location-buttons {
   display: inline-flex;
   list-style: none;
+  /* font-family: "Poppins", sans-serif; */
 }
 .location-grid {
   display: flex;
