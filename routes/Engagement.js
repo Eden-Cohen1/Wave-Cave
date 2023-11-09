@@ -159,3 +159,15 @@ router.post("/unfollow", async (req, res) => {
   const newFollowersCount = await unFollow(userID, currentUser);
   res.json(newFollowersCount);
 });
+
+router.delete("/comment/:id", async (req, res) => {
+  const id = req.params.id;
+  console.log(id);
+  console.log(await Notification.findOneAndDelete({ gotoId: id }));
+  const deletedItem = await Comment.findOneAndDelete({ id: id });
+  if (deletedItem) {
+    res.json({ message: "Item Deleted", deletedItem });
+  } else {
+    res.status(500).json({ message: "Error deleting item" });
+  }
+});
