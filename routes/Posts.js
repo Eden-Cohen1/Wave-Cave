@@ -118,6 +118,10 @@ router.post("/api/post", async (req, res) => {
   const currentUser = req.session.user;
   const { postId } = req.body;
   const post = await getPost(postId);
+  if (!post) {
+    res.json(null);
+    return;
+  }
   const isLiked = isContainUser(post?.likes, currentUser);
   const html = post.generateHtml(
     isLiked,
@@ -131,7 +135,8 @@ router.post("/api/post", async (req, res) => {
 router.delete("/post/:id", async (req, res) => {
   const id = req.params.id;
   console.log(id);
-  await Notification.findOneAndDelete({ gotoId: id });
+  const deletedNorif = await Notification.findOneAndDelete({ gotoId: id });
+  console.log(await Notification.findOneAndDelete({ gotoId: id }));
   const deletedItem = await Post.findOneAndDelete({ id: id });
   if (deletedItem) {
     res.json({ message: "Item Deleted", deletedItem });

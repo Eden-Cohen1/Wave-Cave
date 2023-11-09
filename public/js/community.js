@@ -465,10 +465,16 @@ inputImg.addEventListener("change", function (e) {
 createPostDiv.addEventListener("click", function (e) {
   if (e.target.classList.contains("post") && !e.target.disabled) {
     e.preventDefault();
-    previewContainer.classList.add("hidden");
     const text = document.querySelector("#create-post");
+    if (text.value.length < 1) {
+      window.alert(
+        "Oops! This post appears to be empty. Please add some content before posting."
+      );
+      return;
+    }
     const imgName = inputImg.files[0] ? inputImg.files[0].name : "";
     const formData = new FormData(postForm);
+    previewContainer.classList.add("hidden");
     formData.append("imgName", imgName);
     text.value = "";
     e.target.disabled = true;
