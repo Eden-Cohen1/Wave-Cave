@@ -11,7 +11,7 @@ export const router = express.Router();
 
 function generateNotifHtml(user) {
   let html = "";
-  user.notifications.slice(-5).forEach((notif) => {
+  user.notifications.slice().reverse().forEach((notif) => {
     html += notif.generateHtml();
   });
   return html;

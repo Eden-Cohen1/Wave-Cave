@@ -519,12 +519,13 @@ a.menu-item {
   top: 0;
   left: 105%;
   width: 30rem;
+  height: 15rem;
   background-color: var(--lighter-bg-color);
   border-radius: var(--card-border-radius);
   padding: var(--card-padding);
   border: 0.01rem solid var(--border-color);
   z-index: 1000 !important;
-  overflow-y: auto;
+  overflow-y: scroll;
 }
 /* .left .notifications-popup::before {
   content: "";

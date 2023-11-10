@@ -4,9 +4,9 @@ import session from "express-session";
 import { config } from "dotenv";
 import { connectDB } from "./public/db/dbConn.js";
 import mongoose from "mongoose";
-import { join } from "path";
 import { fileURLToPath } from "url";
-import { dirname } from "path";
+import { dirname, join } from "path";
+import { writeFile, readFileSync } from "fs";
 import crypto from "crypto";
 import { Post } from "./public/db/models/post.js";
 import { router as userRoute } from "./routes/User.js";
@@ -14,7 +14,7 @@ import { router as postsRoute } from "./routes/Posts.js";
 import { router as engagementRoute } from "./routes/Engagement.js";
 import { router as apiRoute } from "./routes/Api.js";
 import { router as uploadsRoute } from "./routes/Uploads.js";
-
+import { generateForecast } from "./public/js/forecast.js";
 config();
 connectDB();
 const app = express();
@@ -81,6 +81,8 @@ export async function getPost(postId) {
 
 // <============ MAIN ROUTES ============> //
 app.get("^/$|/index(.html)?", (req, res) => {
+  UpdateForecastDB();
+  console.log('index.html');
   res.sendFile(join(currentDir, "views", "index.html"));
 });
 app.get("/community(.html)?", (req, res) => {
@@ -99,3 +101,26 @@ mongoose.connection.once("open", () => {
     console.log(`Server ruuning on ${PORT}`);
   });
 });
+
+// <=========================== FORECAST ===========================> //
+
+async function UpdateForecastDB() {
+  let allForecast;
+  const today = new Date().toISOString();
+  const lastApiCall = readFileSync(
+    join(currentDir, "public", "db", "lastApiCall.txt"),
+    "utf8"
+  );
+  if (lastApiCall?.split("T")[0] == today.split("T")[0]) {
+    allForecast = await generateForecast();
+    writeFile(
+      join(currentDir, "public", "db", "wavesData.txt"),
+      JSON.stringify(allForecast),
+      (err) => {
+        if (err) {
+          console.error(err);
+        }
+      }
+    );
+  }
+}
