@@ -64,9 +64,9 @@ async function getUserData() {
       }
       currentUser = userData.user;
       const notifPopup = document.querySelector(".notifications-popup");
-      document.querySelector(
-        ".notification-count"
-      ).textContent = `${userData.user.notifications.length}+`;
+      document.querySelector(".notification-count").textContent = `${
+        userData.user.notifications.filter((notif) => !notif.seen).length
+      }+`;
       notifPopup.innerHTML = userData.notifHtml;
       updateUser(userData.user);
     });
@@ -89,7 +89,6 @@ async function loadFeedPosts(path, userId, isMainFeed) {
   console.log(data.postHtmlList);
   if (!data.postHtmlList || data.postHtmlList?.length < 1) {
     console.log("no posts left");
-    return;
   }
   profilePostContainer.innerHTML = "";
   updateUserProfile(data.user, data.userHtml);
@@ -99,10 +98,10 @@ async function loadFeedPosts(path, userId, isMainFeed) {
 function addUniquePosts(data, isMainFeed) {
   console.log(isMainFeed);
   if (isMainFeed) {
-    const uniquePosts = data.postHtmlList.filter((post) => {
+    const uniquePosts = data.postHtmlList?.filter((post) => {
       return !loadedPostsSet.has(post.id);
     });
-    if (uniquePosts.length > 0) {
+    if (uniquePosts?.length > 0) {
       uniquePosts.forEach((post) => {
         loadedPostsSet.add(post.id);
         feedContainer.insertAdjacentHTML("beforeend", post.html);
@@ -110,8 +109,7 @@ function addUniquePosts(data, isMainFeed) {
       currPage++;
     }
   } else {
-    console.log(profilePostContainer);
-    const uniquePosts = data.postHtmlList.filter((post) => {
+    const uniquePosts = data.postHtmlList?.filter((post) => {
       const loadedPosts = [...profilePostContainer.querySelectorAll(".feed")];
       console.log(loadedPosts);
       const loadedPostsID = loadedPosts.map((post) => post.getAttribute("id"));
@@ -153,7 +151,13 @@ window.addEventListener("scroll", () => {
 
 function updateUserProfile(user, userProfileHtml) {
   const isProfileLoaded = document.querySelector(".container-profile");
+  console.log(userProfileHtml);
   if (!user) {
+    profileContainer.innerHTML = `<h3>Log in to watch your profile</h3>
+    <a href=""
+    ><button class="btn-primary login" onclick="openModalLG()">Login</button></a
+  >`;
+    console.log(profileContainer.innerHTML, "@@@");
     return null;
   }
   if (isProfileLoaded) {
@@ -416,7 +420,10 @@ sidebarProfile.addEventListener("click", async function () {
     currPath = `/api/my-profile`;
     loadFeedPosts(currPath, currUserid, isMainFeed);
   } else {
-    profileContainer.innerHTML = "";
+    profileContainer.innerHTML = `<h3>Log in to watch your profile</h3>
+    <a href=""
+    ><button class="btn-primary login" onclick="openModalLG()">Login</button></a
+  >`;
   }
 });
 
@@ -435,6 +442,9 @@ sidebarNews.addEventListener("click", function () {
   createPostDiv.classList.add("hidden");
   notifPopup.classList.add("hidden");
   singlePost.classList.add("hidden");
+  newsContainer.innerHTML = `<div class="loading-container">
+  <div class="loading-spinner"></div>
+</div>`;
   updateNews();
 });
 
@@ -635,6 +645,7 @@ function goToUser(userId) {
   moveToUserProfile();
   loadFeedPosts(currPath, currUserid, isMainFeed);
   changeActive();
+  getUserData();
   window.scrollTo(0, 0);
 }
 function postInteraction(e) {
@@ -708,16 +719,17 @@ function postInteraction(e) {
     deletePost(e.target.getAttribute("id"));
   }
 }
-async function notificationPost(postId) {
+async function notificationPost(postId, notificationId) {
   fetch("/api/post", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ postId }),
+    body: JSON.stringify({ postId, notificationId }),
   })
     .then((response) => response.json())
     .then((postHtml) => {
+      getUserData();
       feedContainer.classList.add("hidden");
       createPostDiv.classList.add("hidden");
       singlePost.innerHTML = postHtml;
@@ -755,17 +767,22 @@ singlePost.addEventListener("click", async function (e) {
   e.preventDefault();
   postInteraction(e);
 });
+searchResultDiv.addEventListener("click", async function (e) {
+  e.preventDefault();
+  postInteraction(e);
+});
 //-----------------------------------------------------------------------
 
 // <=========================== NOTIFICATIONS ===========================> //
 notifPopup.addEventListener("click", function (e) {
   e.preventDefault();
   const notif = e.target.closest(".notification");
+  const notificationId = notif.getAttribute("data-id1");
   if (notif) {
     if (notif.classList.contains("post")) {
       const postId = notif.getAttribute("id");
       notifPopup.classList.add("hidden");
-      notificationPost(postId);
+      notificationPost(postId, notificationId);
     } else if (notif.classList.contains("user-profile")) {
       const userId = notif.getAttribute("id");
       notifPopup.classList.add("hidden");
@@ -795,6 +812,7 @@ function addArticles(articles) {
   </div>`;
     articleContainer.insertAdjacentHTML("beforeend", html);
   });
+  newsContainer.innerHTML = articleContainer.outerHTML;
 }
 async function updateNews() {
   const response = await fetch("/news", {

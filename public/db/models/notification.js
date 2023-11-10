@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { generateTime } from "./post.js";
+import { generateKey } from "../../../server.js";
 import moment from "moment";
 
 const notificationSchema = new mongoose.Schema({
@@ -19,18 +20,27 @@ const notificationSchema = new mongoose.Schema({
     default: Date.now,
   },
   seen: Boolean,
+  id: String,
 });
 
+notificationSchema.pre("save", function (next) {
+  if (!this.id) {
+    this.id = generateKey();
+  }
+  next();
+});
 notificationSchema.methods.generateHtml = function () {
   const timeAgo = generateTime(this);
-  const html = `<div class="notification ${this.notifType}" id=${this.gotoId}>
+  const seen = this.seen ? "" : "unseen";
+  const html = `<div class="notification ${this.notifType}" id=${this.gotoId} data-id1="${this.id}">
   <div class="profile-photo">
     <img src=${this.fromUser.img} alt="">
   </div>
   <div class="notification-body">
     <b>${this.fromUser.name} </b> ${this.text}
     <small class="text-muted"> ${timeAgo}</small>
-  </div>
+    </div>
+    <div class="seenflag ${seen}"></div>
 </div>`;
   return html;
 };

@@ -116,7 +116,10 @@ router.get("/api/profile", async (req, res) => {
 
 router.post("/api/post", async (req, res) => {
   const currentUser = req.session.user;
-  const { postId } = req.body;
+  const { postId, notificationId } = req.body;
+  const notification = await Notification.findOne({ id: notificationId });
+  notification.seen = true;
+  notification.save();
   const post = await getPost(postId);
   if (!post) {
     res.json(null);

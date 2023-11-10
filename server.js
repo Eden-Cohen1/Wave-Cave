@@ -47,17 +47,17 @@ app.use("/", uploadsRoute);
 
 // <=========================== HELPER FUNCTIONS ===========================> //
 
-export function isContainUser(userList, user) { 
-  let contain = false
+export function isContainUser(userList, user) {
+  let contain = false;
   if (!user) {
     return contain;
   }
-  userList.forEach(user_ => {
-    if(user_.userID == user.userID ){
+  userList.forEach((user_) => {
+    if (user_.userID == user.userID) {
       contain = true;
     }
   });
-  return contain
+  return contain;
 }
 export function generateKey() {
   const key = crypto.randomBytes(16).toString("base64");
@@ -80,11 +80,7 @@ export async function getPost(postId) {
 }
 
 // <============ MAIN ROUTES ============> //
-app.get("^/$|/index(.html)?", (req, res) => {
-  UpdateForecastDB();
-  console.log('index.html');
-  res.sendFile(join(currentDir, "views", "index.html"));
-});
+
 app.get("/community(.html)?", (req, res) => {
   res.sendFile(join(currentDir, "views", "community.html"));
 });
@@ -103,24 +99,3 @@ mongoose.connection.once("open", () => {
 });
 
 // <=========================== FORECAST ===========================> //
-
-async function UpdateForecastDB() {
-  let allForecast;
-  const today = new Date().toISOString();
-  const lastApiCall = readFileSync(
-    join(currentDir, "public", "db", "lastApiCall.txt"),
-    "utf8"
-  );
-  if (lastApiCall?.split("T")[0] == today.split("T")[0]) {
-    allForecast = await generateForecast();
-    writeFile(
-      join(currentDir, "public", "db", "wavesData.txt"),
-      JSON.stringify(allForecast),
-      (err) => {
-        if (err) {
-          console.error(err);
-        }
-      }
-    );
-  }
-}

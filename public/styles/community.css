@@ -518,15 +518,29 @@ a.menu-item {
   position: absolute;
   top: 0;
   left: 105%;
-  width: 30rem;
-  height: 15rem;
+  width: 35rem;
+  min-height: fit-content;
+  max-height: 15rem;
   background-color: var(--lighter-bg-color);
   border-radius: var(--card-border-radius);
-  padding: var(--card-padding);
   border: 0.01rem solid var(--border-color);
+  padding: var(--card-padding);
   z-index: 1000 !important;
   overflow-y: scroll;
 }
+/* .notification > div {
+  margin-top: 0.3rem !important;
+} */
+.seenflag.unseen {
+  width: 8px;
+  height: 8px;
+  background-color: #1b74e4;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+  margin-top: 0.5rem;
+}
+
 /* .left .notifications-popup::before {
   content: "";
   width: 1.2rem;
@@ -906,7 +920,7 @@ i.uil-share-alt:hover {
     margin-left: 20rem !important;
   }
   nav .container {
-    margin-left: 10vw;
+    margin-left: 20vw;
   }
   .logo-img {
     margin-right: 12vw;
@@ -943,6 +957,7 @@ i.uil-share-alt:hover {
     padding-left: 1rem;
   }
   .logout {
+    position: static !important;
     left: 83%;
     top: 12px;
   }
@@ -1113,6 +1128,7 @@ div.container.feeds {
   }
   .single-post {
     margin-left: 0rem !important;
+    margin-right: 1rem !important;
     margin-bottom: 10rem;
     overflow: hidden;
   }
@@ -1218,7 +1234,6 @@ div.container.feeds {
   nav li:hover {
     background-color: var(--bg-color);
   }
-
   .nav-bar .closebtn {
     position: absolute;
     display: block !important;
@@ -1296,8 +1311,18 @@ div.container.feeds {
   .login__form {
     margin: 0.2rem !important;
   }
+  h2.modal__header {
+    font-size: 1.75rem !important;
+  }
   .signup__form input[type="submit"] {
     left: -2rem;
+  }
+  .news {
+    margin-right: 4.5rem;
+    margin-bottom: 10rem !important;
+  }
+  .seenflag.unseen {
+    width: 13px !important;
   }
 }
 /* <!-- =========================== SIGNUP MODAL =========================== --> */
@@ -1378,8 +1403,10 @@ div.container.feeds {
 }
 
 .logout {
+  position: absolute;
   align-items: center;
   justify-content: center;
+  top: 12px !important;
 }
 .btn--close-modal {
   font-family: inherit;
@@ -1583,4 +1610,29 @@ footer input {
 .card-bottom .followingCount h3,
 .card-bottom .followingCount small {
   z-index: -100;
+}
+
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 70vh;
+}
+
+.loading-spinner {
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #3498db;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }

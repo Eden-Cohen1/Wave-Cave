@@ -429,7 +429,7 @@ button:hover {
 }
 .overlay-guide {
   position: absolute;
-  height: 100%;
+  height: 105%;
   width: 100%;
   top: 0;
   left: 0;
@@ -613,7 +613,7 @@ button:hover {
     height: 90vh;
   }
   .overlay-guide {
-    padding: 3rem;
+    padding: 1rem;
   }
   .btn-container {
     margin-top: 5%;
@@ -645,7 +645,17 @@ button:hover {
     border-style: solid;
   }
   .wave-table {
-    font-size: 0.82rem;
+    font-size: 0.8rem;
+  }
+  .guide {
+    height: 80vh !important;
+    margin-bottom: 3rem !important;
+  }
+  .overlay-guide {
+    padding-top: 11rem;
+  }
+  .guide h2 {
+    margin-bottom: 0.5rem !important;
   }
   .hero h1 {
     font-size: 2rem;

@@ -135,8 +135,10 @@
         </div>
       </div>
         <!-- =========================== FEEDS =========================== -->
+        
         <div class="my-profile hidden">
           <div class="user-posts">
+            
           </div>
         </div>
           <!-- =========================== br =========================== -->
@@ -625,6 +627,11 @@
       document.getElementById("mySidebar").style.right = "-40px";
 
     }
+    const openModalLG = function (e) {
+    e.preventDefault();
+    loginModal.classList.remove("hidden");
+    modalOverlay.classList.remove("hidden");
+  };
     </script>
   </body>
   </html>
