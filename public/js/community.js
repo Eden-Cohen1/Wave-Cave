@@ -77,7 +77,9 @@ async function loadFeedPosts(path, userId, isMainFeed) {
   if (!currentUser) {
     await getUserData();
   }
-  profileContainer.innerHTML = "";
+  profileContainer.innerHTML = `<div class="loading-container">
+  <div class="loading-spinner"></div>
+</div>`;
   const response = await fetch(`${path}`, {
     method: "GET",
     headers: {
@@ -86,8 +88,7 @@ async function loadFeedPosts(path, userId, isMainFeed) {
     },
   });
   const data = await response.json();
-  console.log(data.postHtmlList);
-  if (!data.postHtmlList || data.postHtmlList?.length < 1) {
+  if (!data?.postHtmlList || data?.postHtmlList?.length < 1) {
     console.log("no posts left");
   }
   profilePostContainer.innerHTML = "";
@@ -151,7 +152,6 @@ window.addEventListener("scroll", () => {
 
 function updateUserProfile(user, userProfileHtml) {
   const isProfileLoaded = document.querySelector(".container-profile");
-  console.log(userProfileHtml);
   if (!user) {
     profileContainer.innerHTML = `<h3>Log in to watch your profile</h3>
     <a href=""

@@ -628,7 +628,8 @@
 
     }
     const openModalLG = function (e) {
-    e.preventDefault();
+    const loginModal = document.querySelector(".login-modal");
+    const modalOverlay = document.querySelector(".overlay-modal");
     loginModal.classList.remove("hidden");
     modalOverlay.classList.remove("hidden");
   };
