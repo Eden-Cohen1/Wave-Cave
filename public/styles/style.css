@@ -634,9 +634,6 @@ button:hover {
 }
 
 @media screen and (max-width: 800px) {
-  body {
-    width: 120vw !important;
-  }
   .hero {
     width: 100% !important;
   }
