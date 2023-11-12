@@ -13,11 +13,18 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5 MB limit for the entire request
+    fieldSize: 10 * 1024 * 1024, // 10 MB limit for individual fields (adjust as needed)
+  },
+});
+
 router.post("/Post", upload.single("postImage"), async (req, res) => {
   const currentUser = await findUserById(req.session.userID);
   const { postBody } = req.body;
-  const imgPath = req.body.imgName ? `./uploads/${req.body.imgName}` : "";
+  const imgPath = req.body.imgUrl;
   const post = await createPost(currentUser, postBody, imgPath);
   const html = post.generateHtml();
   currentUser.postCount++;
