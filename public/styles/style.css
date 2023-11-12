@@ -640,6 +640,9 @@ button:hover {
   .container-footer {
     width: 120vw !important;
   }
+  .table-group {
+    margin-left: 3rem;
+  }
   .location-container button {
     margin-right: 0.5rem;
     font-size: 2.1vw;
@@ -659,6 +662,7 @@ button:hover {
   }
   .guide p {
     font-size: 0.7rem;
+    padding-left: 3rem;
   }
   .loc .overlay-guide {
     padding-top: 11rem;
