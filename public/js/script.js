@@ -92,7 +92,7 @@ btnsLocationContainer.addEventListener("click", function (e) {
       case "indonessia":
         spotHeader.textContent = "📍 Uluwatu - Bali, Indonessia";
         guideP.textContent =
-          "Uluwatu is at the forefront of surfing in Bali, thanks to its ability to cope with all sizes of swells on its vast scattered jetty-like reef playground. With kilometers of sandy beaches tucked into cliff-backed, secretive inlets, Ulu's is a wide reef offering 5 different peaks that turn on at different tides. These main 5 waves all break left down the reef with variations sections that change with the size of the swell also.";
+          "Uluwatu is at the forefront of surfing in Bali, thanks to its ability to cope with all sizes of swells on its vast scattered jetty-like reef playground. With kilometers of sandy beaches tucked into cliff-backed, secretive inlets, Ulu's is a wide reef offering 5 different peaks that turn on at different tides.";
         guideH.textContent = "Uluwatu Point Break";
 
         break;
@@ -106,13 +106,13 @@ btnsLocationContainer.addEventListener("click", function (e) {
         spotHeader.textContent =
           "📍 The Jailbreaks Surf Point, Himmafushi, Maldives";
         guideP.textContent =
-          "Jailbreaks in North Male Atoll is an exposed reef break that has reasonably consistent surf. The surf tends to be best in the spring. Offshore winds blow from the south southwest. Groundswells more frequent than windswells and the best swell direction is from the south. There is a right hand reef break. Good surf at all stages of the tide.";
-        guideH.textContent = "The Jailbreaks Point Break";
+          "Jailbreaks in North Male Atoll is an exposed reef break that has reasonably consistent surf. The surf tends to be best in the spring. Offshore winds blow from the south southwest. Groundswells more frequent than windswells and the best swell direction is from the south.";
+        guideH.textContent = "Jailbreaks Point Break";
         break;
       default:
         spotHeader.textContent = "📍 Hilton, TelAviv - Israel";
         guideP.textContent =
-          "Hilton on the West Coast is an exposed reef/jetties break that has inconsistent surf. Winter is the optimum time of year for surfing here. Works best in offshore winds from the east. Usually gets local windswells, but groundswells do happen and the ideal wave angle is from the southwest. The reef provides both left and right breaks. It's often crowded here. Take care to avoid the rocks.";
+          "Hilton on the West Coast is an exposed reef/jetties break that has inconsistent surf. Winter is the optimum time of year for surfing here. Works best in offshore winds from the east. Usually gets local windswells, but groundswells do happen and the ideal wave angle is from the southwest. The reef provides both left and right breaks.";
         guideH.textContent = "Hilton Reaf Break";
     }
 

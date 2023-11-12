@@ -17,10 +17,8 @@ body {
   margin-left: 0px;
   margin-right: 0px;
   overflow-x: hidden;
-  /* overflow-y: hidden; */
   background-color: var(--bg-color);
 }
-
 .hero {
   animation: fadeIn 1.5s;
   animation-fill-mode: forwards;
@@ -29,7 +27,6 @@ body {
   position: relative;
   background-size: cover;
   background-position: 50% 50%;
-  /* background-image: url(../images/wavebg.jpg); */
   background-image: url(../images/bg-test3.jpg);
   z-index: 1;
   overflow: hidden;
@@ -222,6 +219,7 @@ button:hover {
   position: relative;
   width: 100%;
   font-size: larger;
+  text-align: center;
 }
 .wave-table th,
 .wave-table td {
@@ -646,12 +644,17 @@ button:hover {
   }
   .wave-table {
     font-size: 0.8rem;
+    text-align: center;
   }
+
   .guide {
     height: 80vh !important;
-    margin-bottom: 3rem !important;
+    margin-bottom: 2rem !important;
   }
-  .overlay-guide {
+  .guide p {
+    font-size: 0.7rem;
+  }
+  .loc .overlay-guide {
     padding-top: 11rem;
   }
   .guide h2 {
@@ -678,6 +681,9 @@ button:hover {
   .hero button {
     align-items: center;
     justify-self: center;
+  }
+  .stars img {
+    width: 0.7rem;
   }
 }
 .location-container h1 {
