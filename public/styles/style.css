@@ -634,6 +634,15 @@ button:hover {
 }
 
 @media screen and (max-width: 800px) {
+  body {
+    width: 120vw !important;
+  }
+  .hero {
+    width: 100% !important;
+  }
+  .container-footer {
+    width: 100% !important;
+  }
   .location-container button {
     margin-right: 0.5rem;
     font-size: 2.1vw;
