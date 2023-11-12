@@ -35,12 +35,16 @@ const profileContainer = document.querySelector(".my-profile");
 const previewContainer = document.querySelector(".img-preview");
 const menuItems = document.querySelectorAll(".menu-item");
 const usersModal = document.querySelector(".users-modal");
+const loadingContainer = document.createElement("div");
+loadingContainer.className = "loading-container";
+const loadingSpinner = document.createElement("div");
+loadingSpinner.className = "loading-spinner";
+loadingContainer.appendChild(loadingSpinner);
 let profilePostContainer = document.querySelector(".user-posts");
 let currentUser;
 let currPage = 1;
 let currPath = `/api/feed?page=${currPage}`;
 let currUserid = "none";
-
 let isMainFeed = true;
 loadFeedPosts(currPath, currUserid, isMainFeed);
 
@@ -453,14 +457,30 @@ sidebarNews.addEventListener("click", function () {
 // <=========================== POSTING ===========================> //
 
 //preview img//
+const convertBase64 = async (file) => {
+  return new Promise((resolve, reject) => {
+    const fileReader = new FileReader();
+    fileReader.readAsDataURL(file);
+
+    fileReader.onload = () => {
+      resolve(fileReader.result);
+    };
+
+    fileReader.onerror = (error) => {
+      reject(error);
+    };
+  });
+};
 const inputImg = document.querySelector("#inputImg");
-inputImg.addEventListener("change", function (e) {
+let base64Url;
+inputImg.addEventListener("change", async function (e) {
   const preview = document.querySelector("#previewImg");
   previewContainer.classList.remove("hidden");
   const file = document.querySelector("input[type=file]").files[0];
   const reader = new FileReader();
 
-  reader.onloadend = function () {
+  reader.onloadend = async function () {
+    base64Url = await convertBase64(file);
     preview.src = reader.result;
   };
 
@@ -470,7 +490,6 @@ inputImg.addEventListener("change", function (e) {
     preview.src = "";
   }
 });
-
 //post click//
 createPostDiv.addEventListener("click", function (e) {
   if (e.target.classList.contains("post") && !e.target.disabled) {
@@ -482,10 +501,15 @@ createPostDiv.addEventListener("click", function (e) {
       );
       return;
     }
-    const imgName = inputImg.files[0] ? inputImg.files[0].name : "";
+    if (feedContainer.firstChild) {
+      feedContainer.insertBefore(loadingContainer, feedContainer.firstChild);
+    } else {
+      feedContainer.appendChild(loadingContainer);
+    }
+    const imgUrl = base64Url;
     const formData = new FormData(postForm);
     previewContainer.classList.add("hidden");
-    formData.append("imgName", imgName);
+    formData.append("imgUrl", imgUrl);
     text.value = "";
     e.target.disabled = true;
     fetch("/Post", {
@@ -494,6 +518,7 @@ createPostDiv.addEventListener("click", function (e) {
     })
       .then((response) => response.json())
       .then((html) => {
+        loadingContainer.parentNode.removeChild(loadingContainer);
         feedContainer.insertAdjacentHTML("afterbegin", html);
       })
       .finally(() => (e.target.disabled = false));
