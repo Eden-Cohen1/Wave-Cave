@@ -72,7 +72,7 @@ postSchema.methods.generateHtml = function (
   } else {
     likeByHtml = `0 likes`;
   }
-  const imgHtml = this.img ? `<img src=${this?.img}>` : "";
+  const imgHtml = this.img.length > 1 ? `<img src=${this?.img}>` : "";
   const html = `<div class="feed" id="${this?.id}">
         <div class="head">
           <div class="user user-click" id=${this?.user?.userID}>

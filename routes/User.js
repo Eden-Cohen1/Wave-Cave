@@ -1,5 +1,5 @@
 import {
-  findUser,
+  User,
   findUserById,
   findUserBySearch,
 } from "../public/db/models/user.js";
@@ -9,6 +9,24 @@ import express from "express";
 
 export const router = express.Router();
 
+async function findUser(email, password) {
+  const user = await User.findOne({
+    email: email,
+    password: password,
+  })
+    .populate([
+      {
+        path: "notifications",
+        model: "Notification",
+        populate: { path: "fromUser", model: "User" },
+      },
+      { path: "followers", model: "User" },
+      { path: "following", model: "User" },
+    ])
+    .exec();
+  console.log(user.img, "1111111111111111111111111");
+  return user;
+}
 function generateNotifHtml(user) {
   let html = "";
   user.notifications

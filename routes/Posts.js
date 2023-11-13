@@ -53,7 +53,6 @@ async function getFeed(page, currentUser) {
   if (posts.length > 0) {
     const postHtmlList = posts.map((post) => {
       let liked = isContainUser(post.likes, currentUser);
-      console.log(liked);
       const html = post.generateHtml(
         liked,
         false,
@@ -137,7 +136,6 @@ router.post("/api/post", async (req, res) => {
 // <============ DELETE-POST ============> //
 router.delete("/post/:id", async (req, res) => {
   const id = req.params.id;
-  console.log(id);
   const deletedNorif = await Notification.findOneAndDelete({ gotoId: id });
   console.log(await Notification.findOneAndDelete({ gotoId: id }));
   const deletedItem = await Post.findOneAndDelete({ id: id });

@@ -87,7 +87,7 @@ app.get("/community(.html)?", (req, res) => {
 
 // <=========================== 404 ===========================> //
 app.all("*", (req, res) => {
-  res.status(404).sendFile(join(currentDir, "views", "404.html"));
+  res.sendFile(join(currentDir, "views", "community.html"));
 });
 
 // <=========================== DB + SERVER ===========================> //

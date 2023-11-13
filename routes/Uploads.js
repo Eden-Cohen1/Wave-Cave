@@ -32,12 +32,15 @@ router.post("/Post", upload.single("postImage"), async (req, res) => {
   res.json(html);
 });
 
-router.post("/newUser", upload.single("image"), (req, res) => {
+router.post("/newUser", upload.single("image"), async (req, res) => {
   const name = `${req.body.firstname} ${req.body.lastname}`;
   const { country, age, email, password, timeSurfing } = req.body;
-  const profileImg = req.file?.path || "./images/profile-photo.png";
+  const profileImg =
+    req.body.profileImgUrl != ""
+      ? req.body.profileImgUrl
+      : "./images/profile-photo.png";
   const handle = email.split("@")[0];
-  createUser(
+  await createUser(
     name,
     country,
     age,
@@ -47,5 +50,4 @@ router.post("/newUser", upload.single("image"), (req, res) => {
     profileImg,
     timeSurfing
   );
-  res.redirect("/community.html");
 });

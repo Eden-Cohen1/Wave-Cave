@@ -1,5 +1,4 @@
 "use strict";
-
 const postForm = document.querySelector(".create-post");
 const createPostDiv = document.querySelector(".create-post-div");
 const signupForm = document.querySelector(".signup__form");
@@ -12,6 +11,7 @@ const notifPopup = document.querySelector(".left .notifications-popup");
 const singlePost = document.querySelector(".single-post");
 const btnLogo = document.querySelector(".logo-img");
 const btnSignup = document.querySelector(".signup");
+const btnCreateAcoount = document.querySelector("#createAccount");
 const btnLogin = document.querySelector(".login");
 const btnLogout = document.querySelector(".logout");
 const btnCloseModalSU = document.querySelector(
@@ -101,7 +101,6 @@ async function loadFeedPosts(path, userId, isMainFeed) {
 }
 
 function addUniquePosts(data, isMainFeed) {
-  console.log(isMainFeed);
   if (isMainFeed) {
     const uniquePosts = data.postHtmlList?.filter((post) => {
       return !loadedPostsSet.has(post.id);
@@ -116,7 +115,6 @@ function addUniquePosts(data, isMainFeed) {
   } else {
     const uniquePosts = data.postHtmlList?.filter((post) => {
       const loadedPosts = [...profilePostContainer.querySelectorAll(".feed")];
-      console.log(loadedPosts);
       const loadedPostsID = loadedPosts.map((post) => post.getAttribute("id"));
       return !loadedPostsID.includes(post.id);
     });
@@ -161,7 +159,6 @@ function updateUserProfile(user, userProfileHtml) {
     <a href=""
     ><button class="btn-primary login" onclick="openModalLG()">Login</button></a
   >`;
-    console.log(profileContainer.innerHTML, "@@@");
     return null;
   }
   if (isProfileLoaded) {
@@ -195,7 +192,6 @@ function openLikesModal(postId) {
   })
     .then((response) => response.json())
     .then((likes) => {
-      console.log(likes);
       const likesLinks = document.querySelector(".user-links");
       likesLinks.innerHTML = likes.html;
       usersModal.querySelector("h3").textContent = "Likes";
@@ -204,7 +200,6 @@ function openLikesModal(postId) {
 }
 
 function openFollowModal(userID, path) {
-  console.log(userID);
   fetch(`/${path}`, {
     method: "POST",
     headers: {
@@ -214,7 +209,6 @@ function openFollowModal(userID, path) {
   })
     .then((response) => response.json())
     .then((follows) => {
-      console.log(follows);
       const followsLinks = document.querySelector(".user-links");
       followsLinks.innerHTML = follows.html;
       usersModal.querySelector("h3").textContent =
@@ -246,7 +240,6 @@ function search() {
     })
       .then((response) => response.json())
       .then((result) => {
-        console.log(result.html);
         hideAll();
         searchResultDiv.classList.remove("hidden");
         inputSearch.value = "";
@@ -332,13 +325,15 @@ btnSignup.addEventListener("click", openModalSU);
 
 //PROFILE PHOTO//
 const inputProfileImg = document.querySelector("#inputProfileImg");
+let profileImgUrl = "";
 inputProfileImg.addEventListener("change", previewProfileImg);
 function previewProfileImg() {
   const preview = document.querySelector("#previewProfileImg");
   preview.classList.remove("hidden");
   const file = signupForm.querySelector("input[type=file]").files[0];
   const reader = new FileReader();
-  reader.onload = function () {
+  reader.onload = async function () {
+    profileImgUrl = await convertBase64(file);
     preview.src = reader.result;
     preview.classList.remove("hidden");
   };
@@ -348,6 +343,21 @@ function previewProfileImg() {
     preview.src = "";
   }
 }
+btnCreateAcoount.addEventListener("click", function (e) {
+  btnCreateAcoount.disabled = true;
+  const formData = new FormData(signupForm);
+  formData.append("profileImgUrl", profileImgUrl);
+  fetch("/newUser", {
+    method: "POST",
+    body: formData,
+  })
+    .then((response) => {
+      if (response.ok) {
+        openModalLG();
+      }
+    })
+    .finally((btnCreateAcoount.disabled = false));
+});
 //-----------------------------------------------------------------------
 
 // <=========================== LOGOUT ===========================> //
@@ -585,13 +595,11 @@ function commentPost(post, commentBtn) {
       post.outerHTML = html;
 
       const newPostElement = document.querySelector(`.feed #${postID} img`);
-      console.log(newPostElement);
       newPostElement.src = currentUser?.img;
     })
     .finally(() => (commentBtn.disabled = false));
 }
 function deletePost(postId) {
-  console.log(postId);
   const confirmation = window.confirm(
     "Are you sure you want to delete this post?"
   );
@@ -775,7 +783,6 @@ usersModal.addEventListener("click", function (e) {
     usersModal.classList.add("hidden");
   }
   if (userLink) {
-    console.log(userLink.getAttribute("id"));
     goToUser(userLink.getAttribute("id"));
     usersModal.classList.add("hidden");
   }

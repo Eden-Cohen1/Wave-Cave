@@ -225,7 +225,6 @@
           <span class="highlight"> 5 minutes</span>
         </h2>
         <form
-          action="/newUser"
           method="POST"
           enctype="multipart/form-data"
           class="signup__form"
@@ -353,7 +352,7 @@
             <option value="Iran">Iran (Islamic Republic of)</option>
             <option value="Iraq">Iraq</option>
             <option value="Ireland">Ireland</option>
-            <option value="Israel">Israel</option>
+            <option value="Israel" selected>Israel</option>
             <option value="Italy">Italy</option>
             <option value="Jamaica">Jamaica</option>
             <option value="Japan">Japan</option>
@@ -369,7 +368,7 @@
             <option value="Kyrgyzstan">Kyrgyzstan</option>
             <option value="Lao">Lao People's Democratic Republic</option>
             <option value="Latvia">Latvia</option>
-            <option value="Lebanon" selected>Lebanon</option>
+            <option value="Lebanon">Lebanon</option>
             <option value="Lesotho">Lesotho</option>
             <option value="Liberia">Liberia</option>
             <option value="Libyan Arab Jamahiriya">
@@ -546,7 +545,7 @@
             id="previewProfileImg"
             class="hidden"
           />
-          <input type="submit" value="Create an account" class="create-account-btn btn-primary" />
+          <input type="submit" value="Create an account" class="create-account-btn btn-primary" id="createAccount"/>
         </form>
       </div>
 

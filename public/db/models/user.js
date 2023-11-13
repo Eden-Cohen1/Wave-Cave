@@ -9,7 +9,10 @@ const userSchema = new mongoose.Schema({
   password: String,
   dateJoined: String,
   userID: String,
-  img: String,
+  img: {
+    type: String,
+    default: "",
+  },
   notifications: [
     { type: mongoose.Schema.Types.ObjectId, ref: "Notification" },
   ],
@@ -93,7 +96,7 @@ export async function createUser(
 }
 
 export async function findUser(email, password) {
-  const user = await User.findOne({
+  return await User.findOne({
     email: email,
     password: password,
   })
@@ -107,11 +110,6 @@ export async function findUser(email, password) {
       { path: "following", model: "User" },
     ])
     .exec();
-  if (!user) {
-    console.log("User not found");
-    return null;
-  }
-  return user;
 }
 
 export async function findUserById(id) {
