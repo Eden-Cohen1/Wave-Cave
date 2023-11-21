@@ -52,11 +52,11 @@ async function getFeed(page, currentUser) {
     .exec();
   if (posts.length > 0) {
     const postHtmlList = posts.map((post) => {
-      let liked = isContainUser(post.likes, currentUser);
-      const html = post.generateHtml(
+      let liked = isContainUser(post?.likes, currentUser);
+      const html = post?.generateHtml(
         liked,
         false,
-        currentUser?.userID == post.user.userID
+        currentUser?.userID == post?.user?.userID
       );
       return { html: html, id: post.id };
     });

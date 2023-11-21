@@ -40,12 +40,16 @@ loadingContainer.className = "loading-container";
 const loadingSpinner = document.createElement("div");
 loadingSpinner.className = "loading-spinner";
 loadingContainer.appendChild(loadingSpinner);
+const loading = document.querySelector(".loading");
 let profilePostContainer = document.querySelector(".user-posts");
 let currentUser;
 let currPage = 1;
 let currPath = `/api/feed?page=${currPage}`;
 let currUserid = "none";
 let isMainFeed = true;
+if (!currentUser) {
+  autoLogin();
+}
 loadFeedPosts(currPath, currUserid, isMainFeed);
 
 btnLogo.addEventListener("click", () => {
@@ -84,6 +88,9 @@ async function loadFeedPosts(path, userId, isMainFeed) {
   profileContainer.innerHTML = `<div class="loading-container">
   <div class="loading-spinner"></div>
 </div>`;
+  if (!document.querySelector(".feed")) {
+    loading.classList.remove("hidden");
+  }
   const response = await fetch(`${path}`, {
     method: "GET",
     headers: {
@@ -105,6 +112,7 @@ function addUniquePosts(data, isMainFeed) {
     const uniquePosts = data.postHtmlList?.filter((post) => {
       return !loadedPostsSet.has(post.id);
     });
+    loading.classList.add("hidden");
     if (uniquePosts?.length > 0) {
       uniquePosts.forEach((post) => {
         loadedPostsSet.add(post.id);
@@ -890,3 +898,30 @@ readMoreTexts.forEach((readMoreText) => {
   readMoreText.append(button);
   readMoreText.append(extraSpan);
 });
+
+// STARTED LOGGED IN
+function autoLogin() {
+  const email = "eden1@gmail.com";
+  const password = "123";
+  fetch("/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, password }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (!data) {
+        loginForm.querySelector(".password").value = "";
+        window.alert("Wrong email or password, please try again..");
+        closeModalLG();
+        return;
+      }
+      currentUser = data.currentUser;
+      updateUser(data.currentUser);
+      const notifPopup = document.querySelector(".notifications-popup");
+      notifPopup.innerHTML = data.notifHtml;
+      closeModalLG();
+    });
+}

@@ -16,11 +16,7 @@ const btnsLocationContainer = document.querySelector(".location-buttons");
 const spotHeader = document.querySelector("#spot-header");
 const guideP = document.querySelector("#loc-guide-p");
 const guideH = document.querySelector("#loc-guide-h");
-let tableGroup = document.querySelector(".table-group-1");
-let tableDiv = document.createElement("div");
-tableDiv.classList.add("table-group");
-tableDiv.appendChild(table);
-tableGroup.appendChild(tableDiv);
+let tableGroup = document.querySelector(".table-group");
 
 //-----------------------------------------------------------------------
 
@@ -38,32 +34,10 @@ function init() {
     date.textContent = newDate;
     tableDiv.appendChild(newTable);
   };
-  let tableCounter = 0;
   dates.forEach((date, index) => {
-    if (tableCounter === 2) {
-      // Create table div + img div
-      tableGroup = document.createElement("div");
-      tableGroup.classList.add(`table-group-${divCounter}`);
-      const imgDiv = document.createElement("div");
-      imgDiv.classList.add("img-group");
-      tableDiv = document.createElement("div");
-      tableDiv.classList.add("table-group");
-      // Create an image for the table group
-      const groupImg = document.createElement("img");
-      groupImg.src = `/images/surfer${divCounter}.jpg`;
-      groupImg.id = `surfer${divCounter}`;
-      groupImg.classList.add("bg-img", "img-hidden");
-      imgDiv.appendChild(groupImg);
-      // Wrap all the elements together
-      tableGroup.appendChild(imgDiv);
-      tableGroup.appendChild(tableDiv);
-      tablesContainer.appendChild(tableGroup);
-      divCounter++;
-      tableCounter = 0;
-    }
-    tableCounter++;
-    displayTable(table, date, tableDiv);
+    displayTable(table, date, tableGroup);
   });
+  console.log(tableGroup);
 }
 //-----------------------------------------------------------------------
 
@@ -82,11 +56,17 @@ async function fetchForecastData() {
       return JSON.parse(data);
     });
 }
+function removeActive() {
+  const btns = document.querySelectorAll(".loc-btn");
+  btns.forEach((btn) => btn.classList.remove("active"));
+}
 const forecasts = await fetchForecastData();
 let forecastLoc;
 btnsLocationContainer.addEventListener("click", function (e) {
   e.preventDefault();
   if (e.target.classList.contains("loc-btn")) {
+    removeActive();
+    e.target.classList.add("active");
     const LocationID = e.target.getAttribute("id");
     switch (LocationID) {
       case "indonessia":
@@ -148,8 +128,8 @@ function fillTables(location) {
 fillTables("israel");
 
 function fillStarRating(col, rating) {
-  const starList = col.querySelector(".stars");
-  const full_stars = Math.floor(rating);
+  const starList = col.closest(".table").querySelector(".stars");
+  const full_stars = Math.abs(Math.floor(rating));
   const isHalfStar = rating - full_stars >= 0.5;
   for (let i = 1; i < full_stars + 1; i++) {
     const star = starList.querySelector(`.star-${i}`);
